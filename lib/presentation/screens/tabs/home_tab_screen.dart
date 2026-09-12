@@ -1,12 +1,11 @@
 // lib/presentation/screens/home/home_tab_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:gymgenius/core/navigation/route_observer.dart';
 import 'package:gymgenius/presentation/screens/profile_setup/profile_setup_screen.dart';
 import 'package:gymgenius/presentation/viewmodels/home_viewmodel.dart';
 import 'package:gymgenius/presentation/widgets/home/complete_profile_view.dart';
-import 'package:gymgenius/presentation/widgets/home/error_view.dart';
 import 'package:gymgenius/presentation/widgets/home/expired_program_view.dart';
-import 'package:gymgenius/presentation/widgets/home/loading_view.dart';
 import 'package:gymgenius/presentation/widgets/home/no_program_view.dart';
 import 'package:gymgenius/presentation/widgets/home/program_dashboard_view.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +23,7 @@ class HomeTabScreen extends StatefulWidget {
 }
 
 class _HomeTabScreenState extends State<HomeTabScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   HomeViewModel? _viewModel;
 
   /// Prevents multiple DailyCheckIn screens from being opened
@@ -46,6 +45,31 @@ class _HomeTabScreenState extends State<HomeTabScreen>
       viewModel.addListener(_onHomeViewModelChanged);
       _maybeTriggerCheckIn();
     });
+  }
+
+  // ===========================================================================
+  // RouteAware — resync when returning from a pushed screen
+  // ===========================================================================
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  /// Called automatically when a route pushed ON TOP of Home
+  /// is popped (e.g. return from HealthDashboardScreen, ProfileSetupScreen,
+  /// ProgramDetailScreen, etc.).
+  ///
+  /// This is the right place to resync the DailyPlan with the latest
+  /// Hive data (hydration, blood pressure, glucose, habits, wellness).
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    _viewModel?.refresh();
   }
 
   // ===========================================================================
@@ -110,9 +134,14 @@ class _HomeTabScreenState extends State<HomeTabScreen>
      *
      * Since "Plus tard" does not persist anything, the ViewModel
      * will see that today's check-in is still missing and reopen it.
+     *
+     * We ALSO refresh the DailyPlan here, because the user may have
+     * logged health data from another app/device state, or simply
+     * because a day boundary has been crossed.
      */
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _viewModel?.refresh();
       _maybeTriggerCheckIn();
     });
   }
@@ -123,6 +152,7 @@ class _HomeTabScreenState extends State<HomeTabScreen>
 
   @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _viewModel?.removeListener(_onHomeViewModelChanged);
     _viewModel = null;

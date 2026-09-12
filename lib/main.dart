@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gymgenius/core/logger/logger_service.dart';
+import 'package:gymgenius/core/navigation/route_observer.dart';
 import 'package:gymgenius/data/datasources/local/hive/boxes/hive_datasource.dart';
 import 'package:gymgenius/di/injection.dart';
 import 'package:gymgenius/domain/repositories/workout_repository.dart';
@@ -86,6 +87,12 @@ class AppView extends StatelessWidget {
         title: 'Nuvora',
         theme: AppTheme.darkTheme,
         debugShowCheckedModeBanner: false,
+
+        // ✅ ADDED: registers the global observer for RouteAware
+        // (used by HomeTabScreen.didPopNext() to resync the
+        // DailyPlan when returning from a pushed route — e.g. HealthDashboard).
+        navigatorObservers: [appRouteObserver],
+
         home: const AuthWrapper(),
       ),
     );

@@ -26,6 +26,7 @@ class WorkoutSessionManager with ChangeNotifier {
 
   WorkoutSessionSettings _settings = WorkoutSessionSettings.defaults;
   bool _restEndTimeSoundPlayed = false;
+
   bool _isWorkoutActive = false;
   DateTime? _workoutStartTime;
   Timer? _sessionDurationTimer;
@@ -34,25 +35,39 @@ class WorkoutSessionManager with ChangeNotifier {
   String? _currentUserId;
   String? _currentProgramId;
   String? _currentDayKey;
+
   List<Exercise> _plannedExercises = [];
   List<LoggedExercise> _loggedExercisesData = [];
+
   int _currentExerciseIndex = -1;
+
   Timer? _restTimer;
   int _restTimeRemainingSeconds = 0;
   int _currentRestTotalSeconds = 0;
   bool _isResting = false;
+
   bool _isExerciseTimerActive = false;
   int _exerciseTimerRemainingSeconds = 0;
   String? _exerciseTimerExerciseName;
 
+  // ===========================================================================
   // Getters
+  // ===========================================================================
+
   bool get isWorkoutActive => _isWorkoutActive;
+
   Duration get currentWorkoutDuration => _currentWorkoutDuration;
+
   DateTime? get workoutStartTime => _workoutStartTime;
+
   String get currentWorkoutName => _currentWorkoutName;
+
   String? get currentProgramId => _currentProgramId;
+
   String? get currentDayKey => _currentDayKey;
+
   List<Exercise> get plannedExercises => List.unmodifiable(_plannedExercises);
+
   List<LoggedExercise> get loggedExercisesData =>
       List.unmodifiable(_loggedExercisesData);
 
@@ -70,34 +85,63 @@ class WorkoutSessionManager with ChangeNotifier {
 
   int get currentSetIndexForLogging =>
       currentLoggedExerciseData?.sets.length ?? 0;
+
   int get currentExerciseIndex => _currentExerciseIndex;
+
   int get totalExercises => _plannedExercises.length;
+
   int get completedExercisesCount =>
       _loggedExercisesData.where((ex) => ex.completed).length;
+
   bool get isResting => _isResting;
+
   int get restTimeRemainingSeconds => _restTimeRemainingSeconds;
+
   int get currentRestTotalSeconds => _currentRestTotalSeconds;
+
   bool get isExerciseTimerActive => _isExerciseTimerActive;
 
   WorkoutAudioService get workoutAudio => _audio;
 
+  // ===========================================================================
+  // Initialization
+  // ===========================================================================
+
   Future<void> initialize() async {
     await _notifications.initialize();
+
     final languageCode = PlatformDispatcher.instance.locale.languageCode;
-    await _audio.initializeVoice(languageCode: languageCode);
+
+    await _audio.initializeVoice(
+      languageCode: languageCode,
+    );
   }
 
-  Future<void> applySettings(WorkoutSessionSettings settings) async {
+  // ===========================================================================
+  // Settings
+  // ===========================================================================
+
+  Future<void> applySettings(
+    WorkoutSessionSettings settings,
+  ) async {
     _settings = settings;
+
     _audio.applyPreferences(
       sounds: settings.soundsEnabled,
       haptics: settings.hapticsEnabled,
       voice: settings.voiceCountdownEnabled,
     );
+
     _notifications.enabled = settings.backgroundNotificationsEnabled;
   }
 
-  Future<void> onExerciseTimerSecond(int secondsRemaining) async {
+  // ===========================================================================
+  // Exercise timer audio
+  // ===========================================================================
+
+  Future<void> onExerciseTimerSecond(
+    int secondsRemaining,
+  ) async {
     await _audio.onTimerSecond(
       secondsRemaining: secondsRemaining,
       kind: WorkoutTimerKind.exercise,
@@ -112,6 +156,10 @@ class WorkoutSessionManager with ChangeNotifier {
     _audio.resetCountdownState();
   }
 
+  // ===========================================================================
+  // Exercise timer snapshot
+  // ===========================================================================
+
   void updateExerciseTimerSnapshot({
     required bool isActive,
     int remainingSeconds = 0,
@@ -120,13 +168,30 @@ class WorkoutSessionManager with ChangeNotifier {
     _isExerciseTimerActive = isActive;
     _exerciseTimerRemainingSeconds = remainingSeconds;
     _exerciseTimerExerciseName = exerciseName;
-    unawaited(_syncWakelock());
+
+    // Keep wakelock synchronized with the current workout state.
+    //
+    // IMPORTANT:
+    // This method may be called while the workout is ending, so
+    // _isWorkoutActive MUST already reflect the final state before
+    // this synchronization can decide whether to enable or disable
+    // the wakelock.
+    unawaited(
+      _syncWakelock(),
+    );
+
     if (!isActive) {
-      unawaited(_notifications.cancel(
-        id: WorkoutTimerNotificationService.exerciseNotificationId,
-      ));
+      unawaited(
+        _notifications.cancel(
+          id: WorkoutTimerNotificationService.exerciseNotificationId,
+        ),
+      );
     }
   }
+
+  // ===========================================================================
+  // App lifecycle / background notifications
+  // ===========================================================================
 
   Future<void> onAppBackgrounded() async {
     if (!_settings.backgroundNotificationsEnabled || !_isWorkoutActive) {
@@ -153,7 +218,25 @@ class WorkoutSessionManager with ChangeNotifier {
     await _notifications.cancelAll();
   }
 
-  /// ✅ Wakelock désormais activé pendant toute la session active
+  // ===========================================================================
+  // Wakelock
+  // ===========================================================================
+
+  /// Keeps the device awake only while an active workout session exists.
+  ///
+  /// Session lifecycle:
+  ///
+  ///   workout starts
+  ///       ↓
+  ///   _isWorkoutActive = true
+  ///       ↓
+  ///   wakelock ON
+  ///
+  ///   workout ends
+  ///       ↓
+  ///   _isWorkoutActive = false
+  ///       ↓
+  ///   wakelock OFF
   Future<void> _syncWakelock() async {
     if (_isWorkoutActive) {
       await _enableWakelock();
@@ -166,7 +249,10 @@ class WorkoutSessionManager with ChangeNotifier {
     try {
       await WakelockPlus.enable();
     } catch (e) {
-      Log.error("WorkoutSession: Failed to enable wakelock", error: e);
+      Log.error(
+        "WorkoutSession: Failed to enable wakelock",
+        error: e,
+      );
     }
   }
 
@@ -174,13 +260,16 @@ class WorkoutSessionManager with ChangeNotifier {
     try {
       await WakelockPlus.disable();
     } catch (e) {
-      Log.error("WorkoutSession: Failed to disable wakelock", error: e);
+      Log.error(
+        "WorkoutSession: Failed to disable wakelock",
+        error: e,
+      );
     }
   }
 
-  // ============================================================
-  // Démarrer une session (avec userId)
-  // ============================================================
+  // ===========================================================================
+  // Start workout
+  // ===========================================================================
 
   bool startWorkoutIfNoSession(
     List<Exercise> exercisesForSession, {
@@ -189,7 +278,10 @@ class WorkoutSessionManager with ChangeNotifier {
     String? programId,
     String? dayKey,
   }) {
-    if (_isWorkoutActive) return false;
+    if (_isWorkoutActive) {
+      return false;
+    }
+
     _startWorkoutInternal(
       exercisesForSession,
       workoutName: workoutName,
@@ -197,7 +289,9 @@ class WorkoutSessionManager with ChangeNotifier {
       programId: programId,
       dayKey: dayKey,
     );
+
     notifyListeners();
+
     return true;
   }
 
@@ -209,8 +303,11 @@ class WorkoutSessionManager with ChangeNotifier {
     String? dayKey,
   }) {
     if (_isWorkoutActive) {
-      _resetSessionState(notify: false);
+      _resetSessionState(
+        notify: false,
+      );
     }
+
     _startWorkoutInternal(
       exercisesForSession,
       workoutName: workoutName,
@@ -218,6 +315,7 @@ class WorkoutSessionManager with ChangeNotifier {
       programId: programId,
       dayKey: dayKey,
     );
+
     notifyListeners();
   }
 
@@ -231,11 +329,17 @@ class WorkoutSessionManager with ChangeNotifier {
     _isWorkoutActive = true;
     _workoutStartTime = DateTime.now();
     _currentWorkoutDuration = Duration.zero;
+
     _currentWorkoutName = workoutName;
+
     _currentUserId = userId;
     _currentProgramId = programId;
     _currentDayKey = dayKey;
-    _plannedExercises = List.from(exercisesForSession);
+
+    _plannedExercises = List.from(
+      exercisesForSession,
+    );
+
     _loggedExercisesData = _plannedExercises.map((ex) {
       return LoggedExercise(
         exerciseId: ex.id,
@@ -249,32 +353,48 @@ class WorkoutSessionManager with ChangeNotifier {
         rpe: null,
       );
     }).toList();
+
     _currentExerciseIndex = _plannedExercises.isNotEmpty ? 0 : -1;
 
     _sessionDurationTimer?.cancel();
-    _sessionDurationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!_isWorkoutActive) {
-        timer.cancel();
-        return;
-      }
-      _currentWorkoutDuration += const Duration(seconds: 1);
-      notifyListeners();
-    });
 
-    // ✅ Activer le wakelock au démarrage
-    unawaited(_syncWakelock());
+    _sessionDurationTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (!_isWorkoutActive) {
+          timer.cancel();
+          return;
+        }
+
+        _currentWorkoutDuration += const Duration(seconds: 1);
+
+        notifyListeners();
+      },
+    );
+
+    // Wakelock is enabled once the workout becomes active.
+    unawaited(
+      _syncWakelock(),
+    );
 
     Log.debug(
-        "Workout '$workoutName' started. CurrentExIndex: $_currentExerciseIndex.");
+      "Workout '$workoutName' started. "
+      "CurrentExIndex: $_currentExerciseIndex.",
+    );
   }
 
-  // ============================================================
-  // Logique de repos (inchangée, mais le wakelock reste activé)
-  // ============================================================
+  // ===========================================================================
+  // Log set
+  // ===========================================================================
 
-  void logSetForCurrentExercise(String reps, String weight) {
+  void logSetForCurrentExercise(
+    String reps,
+    String weight,
+  ) {
     if (currentExercise == null || currentLoggedExerciseData == null) {
-      Log.error("No current exercise or logged data available");
+      Log.error(
+        "No current exercise or logged data available",
+      );
       return;
     }
 
@@ -292,18 +412,28 @@ class WorkoutSessionManager with ChangeNotifier {
     );
 
     final updatedLog = currentLog.copyWith(
-      sets: [...currentLog.sets, newSet],
+      sets: [
+        ...currentLog.sets,
+        newSet,
+      ],
       completed: currentLog.completed ||
           (currentLog.sets.length + 1 >= currentEx.sets),
     );
 
     _loggedExercisesData[_currentExerciseIndex] = updatedLog;
 
-    updateExerciseTimerSnapshot(isActive: false);
+    updateExerciseTimerSnapshot(
+      isActive: false,
+    );
 
     if (currentEx.restSeconds > 0) {
-      if (_isResting) skipRest();
-      startRestTimer(currentEx.restSeconds);
+      if (_isResting) {
+        skipRest();
+      }
+
+      startRestTimer(
+        currentEx.restSeconds,
+      );
     } else if (_isResting) {
       skipRest();
     }
@@ -311,50 +441,86 @@ class WorkoutSessionManager with ChangeNotifier {
     notifyListeners();
   }
 
-  void startRestTimer(int durationSeconds) {
+  // ===========================================================================
+  // Rest timer
+  // ===========================================================================
+
+  void startRestTimer(
+    int durationSeconds,
+  ) {
     if (durationSeconds <= 0) {
       if (_isResting) {
         _isResting = false;
-        unawaited(_syncWakelock());
+
+        unawaited(
+          _syncWakelock(),
+        );
+
         notifyListeners();
       }
+
       return;
     }
 
     _restTimer?.cancel();
+
     _isResting = true;
     _currentRestTotalSeconds = durationSeconds;
     _restTimeRemainingSeconds = durationSeconds;
     _restEndTimeSoundPlayed = false;
+
     _audio.resetCountdownState();
-    unawaited(_syncWakelock());
+
+    unawaited(
+      _syncWakelock(),
+    );
+
     notifyListeners();
 
-    _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!_isWorkoutActive || !_isResting) {
-        timer.cancel();
-        _isResting = false;
-        _restTimeRemainingSeconds = 0;
-        unawaited(_syncWakelock());
-        notifyListeners();
-        return;
-      }
+    _restTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (!_isWorkoutActive || !_isResting) {
+          timer.cancel();
 
-      if (_restTimeRemainingSeconds > 0) {
-        unawaited(_audio.onTimerSecond(
-          secondsRemaining: _restTimeRemainingSeconds,
-          kind: WorkoutTimerKind.rest,
-        ));
-        _restTimeRemainingSeconds--;
-      } else {
-        _finishRestTimer(playSound: true);
-      }
-      notifyListeners();
-    });
+          _isResting = false;
+          _restTimeRemainingSeconds = 0;
+
+          unawaited(
+            _syncWakelock(),
+          );
+
+          notifyListeners();
+
+          return;
+        }
+
+        if (_restTimeRemainingSeconds > 0) {
+          unawaited(
+            _audio.onTimerSecond(
+              secondsRemaining: _restTimeRemainingSeconds,
+              kind: WorkoutTimerKind.rest,
+            ),
+          );
+
+          _restTimeRemainingSeconds--;
+        } else {
+          _finishRestTimer(
+            playSound: true,
+          );
+        }
+
+        notifyListeners();
+      },
+    );
   }
 
-  void adjustRestTimer(int deltaSeconds) {
-    if (!_isResting || deltaSeconds == 0) return;
+  void adjustRestTimer(
+    int deltaSeconds,
+  ) {
+    if (!_isResting || deltaSeconds == 0) {
+      return;
+    }
 
     _restTimeRemainingSeconds = adjustRestSeconds(
       _restTimeRemainingSeconds,
@@ -369,54 +535,92 @@ class WorkoutSessionManager with ChangeNotifier {
     _restEndTimeSoundPlayed = false;
 
     if (_restTimeRemainingSeconds == 0) {
-      _finishRestTimer(playSound: true);
+      _finishRestTimer(
+        playSound: true,
+      );
     }
 
     notifyListeners();
   }
 
-  void _finishRestTimer({required bool playSound}) {
+  void _finishRestTimer({
+    required bool playSound,
+  }) {
     _restTimer?.cancel();
+
     if (playSound && _isResting && !_restEndTimeSoundPlayed) {
-      unawaited(_audio.playRestComplete());
+      unawaited(
+        _audio.playRestComplete(),
+      );
+
       _restEndTimeSoundPlayed = true;
     }
+
     _isResting = false;
     _restTimeRemainingSeconds = 0;
-    unawaited(_syncWakelock());
-    unawaited(_notifications.cancel(
-      id: WorkoutTimerNotificationService.restNotificationId,
-    ));
+
+    unawaited(
+      _syncWakelock(),
+    );
+
+    unawaited(
+      _notifications.cancel(
+        id: WorkoutTimerNotificationService.restNotificationId,
+      ),
+    );
   }
 
   void skipRest() {
     _restTimer?.cancel();
+
     _isResting = false;
     _restTimeRemainingSeconds = 0;
     _restEndTimeSoundPlayed = true;
+
     _audio.resetCountdownState();
-    unawaited(_syncWakelock());
-    unawaited(_notifications.cancel(
-      id: WorkoutTimerNotificationService.restNotificationId,
-    ));
+
+    unawaited(
+      _syncWakelock(),
+    );
+
+    unawaited(
+      _notifications.cancel(
+        id: WorkoutTimerNotificationService.restNotificationId,
+      ),
+    );
+
     notifyListeners();
   }
 
+  // ===========================================================================
+  // Exercise navigation
+  // ===========================================================================
+
   bool moveToNextExercise() {
-    if (!_isWorkoutActive) return false;
+    if (!_isWorkoutActive) {
+      return false;
+    }
 
     if (currentExercise != null &&
         currentLoggedExerciseData != null &&
         !currentLoggedExerciseData!.completed &&
         currentLoggedExerciseData!.sets.length >= currentExercise!.sets) {
       _loggedExercisesData[_currentExerciseIndex] =
-          _loggedExercisesData[_currentExerciseIndex].copyWith(completed: true);
+          _loggedExercisesData[_currentExerciseIndex].copyWith(
+        completed: true,
+      );
     }
 
-    if (_isResting) skipRest();
-    updateExerciseTimerSnapshot(isActive: false);
+    if (_isResting) {
+      skipRest();
+    }
+
+    updateExerciseTimerSnapshot(
+      isActive: false,
+    );
 
     int nextIdx = -1;
+
     for (int i = _currentExerciseIndex + 1; i < _plannedExercises.length; i++) {
       if (i < _loggedExercisesData.length &&
           !_loggedExercisesData[i].completed) {
@@ -424,6 +628,7 @@ class WorkoutSessionManager with ChangeNotifier {
         break;
       }
     }
+
     if (nextIdx == -1) {
       for (int i = 0; i < _currentExerciseIndex; i++) {
         if (i < _loggedExercisesData.length &&
@@ -438,44 +643,91 @@ class WorkoutSessionManager with ChangeNotifier {
       _currentExerciseIndex = nextIdx;
       _audio.resetCountdownState();
       notifyListeners();
+
       return true;
     }
 
     notifyListeners();
+
     return false;
   }
 
-  bool selectExercise(int index) {
+  bool selectExercise(
+    int index,
+  ) {
     if (!_isWorkoutActive || index < 0 || index >= _plannedExercises.length) {
       return false;
     }
+
     _currentExerciseIndex = index;
+
     _audio.resetCountdownState();
-    updateExerciseTimerSnapshot(isActive: false);
-    if (_isResting) skipRest();
+
+    updateExerciseTimerSnapshot(
+      isActive: false,
+    );
+
+    if (_isResting) {
+      skipRest();
+    }
+
     notifyListeners();
+
     return true;
   }
 
-  // ============================================================
-  // Terminer la session (userId maintenant correct)
-  // ============================================================
+  // ===========================================================================
+  // End workout
+  // ===========================================================================
 
   WorkoutLog? endWorkout() {
-    if (!_isWorkoutActive) return null;
+    if (!_isWorkoutActive) {
+      return null;
+    }
 
     final endedWorkoutName = _currentWorkoutName;
     final workoutEndTime = DateTime.now();
 
     _sessionDurationTimer?.cancel();
+    _sessionDurationTimer = null;
+
     _restTimer?.cancel();
-    updateExerciseTimerSnapshot(isActive: false);
-    unawaited(_notifications.cancelAll());
-    unawaited(_disableWakelock());
+    _restTimer = null;
+
+    /*
+     * IMPORTANT:
+     *
+     * Do not rely on updateExerciseTimerSnapshot(false) to disable
+     * the wakelock while _isWorkoutActive is still true.
+     *
+     * _isWorkoutActive must become false before any asynchronous
+     * wakelock synchronization can run.
+     */
+    _isWorkoutActive = false;
+
+    updateExerciseTimerSnapshot(
+      isActive: false,
+    );
+
+    unawaited(
+      _notifications.cancelAll(),
+    );
+
+    // At this point _isWorkoutActive is already false, so the
+    // synchronization above and this explicit call can only disable
+    // the wakelock.
+    unawaited(
+      _disableWakelock(),
+    );
 
     final totalExercises = _plannedExercises.length;
-    final completedExercises =
-        _loggedExercisesData.where((e) => e.completed).length;
+
+    final completedExercises = _loggedExercisesData
+        .where(
+          (e) => e.completed,
+        )
+        .length;
+
     final completionScore = totalExercises > 0
         ? (completedExercises / totalExercises * 100).round()
         : 0;
@@ -497,52 +749,106 @@ class WorkoutSessionManager with ChangeNotifier {
       savedAt: DateTime.now(),
     );
 
-    _resetSessionState(notify: false);
+    _resetSessionState(
+      notify: false,
+    );
+
     notifyListeners();
-    Log.debug("Session '$endedWorkoutName' ended.");
+
+    Log.debug(
+      "Session '$endedWorkoutName' ended.",
+    );
+
     return workoutLog;
   }
 
-  // ============================================================
-  // Réinitialisation
-  // ============================================================
+  // ===========================================================================
+  // Reset session state
+  // ===========================================================================
 
-  void _resetSessionState({bool notify = true}) {
-    unawaited(_disableWakelock());
-    unawaited(_notifications.cancelAll());
-    updateExerciseTimerSnapshot(isActive: false);
-
+  void _resetSessionState({
+    bool notify = true,
+  }) {
+    /*
+     * IMPORTANT:
+     *
+     * _isWorkoutActive is set to false FIRST.
+     *
+     * updateExerciseTimerSnapshot(false) calls _syncWakelock(),
+     * so this ordering guarantees that the asynchronous sync sees
+     * an inactive workout and disables the wakelock rather than
+     * enabling it again.
+     */
     _isWorkoutActive = false;
+
+    _sessionDurationTimer?.cancel();
+    _sessionDurationTimer = null;
+
+    _restTimer?.cancel();
+    _restTimer = null;
+
+    updateExerciseTimerSnapshot(
+      isActive: false,
+    );
+
+    unawaited(
+      _notifications.cancelAll(),
+    );
+
+    unawaited(
+      _disableWakelock(),
+    );
+
     _workoutStartTime = null;
     _currentWorkoutDuration = Duration.zero;
     _currentWorkoutName = "";
+
     _currentUserId = null;
     _currentProgramId = null;
     _currentDayKey = null;
+
     _plannedExercises = [];
     _loggedExercisesData = [];
+
     _currentExerciseIndex = -1;
+
     _isResting = false;
     _restTimeRemainingSeconds = 0;
     _currentRestTotalSeconds = 0;
     _restEndTimeSoundPlayed = false;
+
+    _isExerciseTimerActive = false;
+    _exerciseTimerRemainingSeconds = 0;
+    _exerciseTimerExerciseName = null;
+
     _audio.resetCountdownState();
 
-    _sessionDurationTimer?.cancel();
-    _sessionDurationTimer = null;
-    _restTimer?.cancel();
-    _restTimer = null;
-
-    if (notify) notifyListeners();
+    if (notify) {
+      notifyListeners();
+    }
   }
+
+  // ===========================================================================
+  // Dispose
+  // ===========================================================================
 
   @override
   void dispose() {
     _sessionDurationTimer?.cancel();
     _restTimer?.cancel();
-    unawaited(_audio.dispose());
-    unawaited(_disableWakelock());
-    unawaited(_notifications.cancelAll());
+
+    unawaited(
+      _audio.dispose(),
+    );
+
+    unawaited(
+      _disableWakelock(),
+    );
+
+    unawaited(
+      _notifications.cancelAll(),
+    );
+
     super.dispose();
   }
 }
