@@ -9,6 +9,7 @@ import 'package:gymgenius/presentation/screens/tabs/home_tab_screen.dart';
 import 'package:gymgenius/presentation/screens/tabs/profile_tab_screen.dart';
 import 'package:gymgenius/presentation/screens/tabs/tracking_tab_screen.dart';
 import 'package:gymgenius/presentation/viewmodels/home_viewmodel.dart';
+import 'package:gymgenius/presentation/viewmodels/tracking_viewmodel.dart';
 import 'package:gymgenius/presentation/widgets/regeneration/regenerate_button.dart';
 import 'package:gymgenius/presentation/widgets/regeneration/regeneration_options_sheet.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,9 @@ class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
 
   static Route<void> route() {
-    return MaterialPageRoute<void>(builder: (_) => const MainDashboardScreen());
+    return MaterialPageRoute<void>(
+      builder: (_) => const MainDashboardScreen(),
+    );
   }
 
   @override
@@ -36,7 +39,10 @@ class MainDashboardScreenState extends State<MainDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _selectedIndex);
+
+    _pageController = PageController(
+      initialPage: _selectedIndex,
+    );
   }
 
   @override
@@ -52,12 +58,13 @@ class MainDashboardScreenState extends State<MainDashboardScreen> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      _pageController.animateToPage(
-        index,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-      );
     });
+
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+    );
   }
 
   void _navigateToTab(int index) {
@@ -66,9 +73,13 @@ class MainDashboardScreenState extends State<MainDashboardScreen> {
     }
   }
 
-  String _getAppBarTitle(int index, User? user) {
+  String _getAppBarTitle(
+    int index,
+    User? user,
+  ) {
     final displayName =
         user?.displayName ?? user?.email.split('@').first ?? 'User';
+
     switch (index) {
       case kHomeTabIndex:
         return 'Welcome, $displayName!';
@@ -89,9 +100,21 @@ class MainDashboardScreenState extends State<MainDashboardScreen> {
       width: 32,
       height: 32,
       fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
-        Log.error('App logo load failed', error: error, stackTrace: stackTrace);
-        return const Icon(Icons.fitness_center, size: 32);
+      errorBuilder: (
+        context,
+        error,
+        stackTrace,
+      ) {
+        Log.error(
+          'App logo load failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
+
+        return const Icon(
+          Icons.fitness_center,
+          size: 32,
+        );
       },
     );
   }
@@ -100,14 +123,21 @@ class MainDashboardScreenState extends State<MainDashboardScreen> {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     final user = authState.user;
+
     if (user == null) {
       return const Scaffold(
-        body: Center(child: Text("Authenticating...")),
+        body: Center(
+          child: Text(
+            "Authenticating...",
+          ),
+        ),
       );
     }
 
     final List<Widget> widgetOptions = <Widget>[
-      HomeTabScreen(onNavigateToTab: _navigateToTab),
+      HomeTabScreen(
+        onNavigateToTab: _navigateToTab,
+      ),
       const ExerciseLibraryScreen(),
       const TrackingTabScreen(),
       const ProfileTabScreen(),
@@ -121,19 +151,32 @@ class MainDashboardScreenState extends State<MainDashboardScreen> {
           children: [
             _buildAppLogo(),
             const SizedBox(width: 12),
-            Text(_getAppBarTitle(_selectedIndex, user)),
+            Text(
+              _getAppBarTitle(
+                _selectedIndex,
+                user,
+              ),
+            ),
           ],
         ),
         centerTitle: true,
         actions: [
           if (_selectedIndex == kHomeTabIndex)
             Consumer<HomeViewModel>(
-              builder: (context, viewModel, child) {
+              builder: (
+                context,
+                viewModel,
+                child,
+              ) {
                 return RegenerateButton(
                   healthProfile: viewModel.healthProfile,
                   currentProgram: viewModel.currentProgram,
                   onRegenerate: (options) {
-                    _handleRegeneration(context, viewModel, options);
+                    _handleRegeneration(
+                      context,
+                      viewModel,
+                      options,
+                    );
                   },
                   isGenerating: viewModel.isGeneratingProgram,
                   tooltip: 'Edit Program',
@@ -145,30 +188,55 @@ class MainDashboardScreenState extends State<MainDashboardScreen> {
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
-          setState(() => _selectedIndex = index);
+          setState(() {
+            _selectedIndex = index;
+          });
+
+          // Tracking is kept alive by the PageView.
+          // Refresh its health/progress data every time
+          // the tab becomes active again.
+          if (index == kTrackingTabIndex) {
+            context.read<TrackingViewModel>().refresh();
+          }
         },
         children: widgetOptions,
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_filled),
+            icon: Icon(
+              Icons.home_outlined,
+            ),
+            activeIcon: Icon(
+              Icons.home_filled,
+            ),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_outlined),
-            activeIcon: Icon(Icons.library_books),
+            icon: Icon(
+              Icons.library_books_outlined,
+            ),
+            activeIcon: Icon(
+              Icons.library_books,
+            ),
             label: 'Exercises',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart_outlined),
-            activeIcon: Icon(Icons.show_chart),
+            icon: Icon(
+              Icons.show_chart_outlined,
+            ),
+            activeIcon: Icon(
+              Icons.show_chart,
+            ),
             label: 'Tracking',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            activeIcon: Icon(Icons.person_rounded),
+            icon: Icon(
+              Icons.person_outline_rounded,
+            ),
+            activeIcon: Icon(
+              Icons.person_rounded,
+            ),
             label: 'Profile',
           ),
         ],
@@ -186,7 +254,7 @@ class MainDashboardScreenState extends State<MainDashboardScreen> {
     try {
       await viewModel.regenerateProgram(options);
     } catch (e) {
-      // Error is already handled in the ViewModel
+      // Error is already handled in the ViewModel.
     }
   }
 }

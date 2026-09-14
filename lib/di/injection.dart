@@ -406,7 +406,6 @@ void setupDependencies() {
       trackingRepository: getIt<TrackingRepository>(),
       userRepository: getIt<UserRepository>(),
       progressRepository: getIt<ProgressRepository>(),
-      healthPlatformRepository: getIt<HealthPlatformRepository>(),
     ),
   );
 
