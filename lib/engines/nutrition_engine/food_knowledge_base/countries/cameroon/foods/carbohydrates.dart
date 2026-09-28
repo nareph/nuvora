@@ -204,4 +204,18 @@ const List<FoodItem> cameroonCarbohydrates = [
     defaultPortionGrams: 140,
     tags: ['staple'],
   ),
+  FoodItem(
+    id: 'cm_corn_couscous',
+    name: 'Corn couscous (couscous de maïs)',
+    country: 'Cameroon',
+    category: FoodCategory.carbohydrate,
+    caloriesPer100g: 120,
+    proteinGPer100g: 2.5,
+    carbsGPer100g: 26,
+    fatGPer100g: 1.0,
+    fiberGPer100g: 2.0,
+    defaultPortionLabel: '1 cup',
+    defaultPortionGrams: 180,
+    tags: ['staple', 'traditional'],
+  ),
 ];

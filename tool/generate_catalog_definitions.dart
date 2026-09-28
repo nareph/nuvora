@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:gymgenius/domain/enums/exports.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercises/splits/exports.dart';
@@ -41,9 +42,11 @@ void main() {
 
     file.writeAsStringSync(content);
 
-    print(
-      '✅ Generated $fileName (${sortedEntries.length} exercises)',
-    );
+    if (kDebugMode) {
+      print(
+        '✅ Generated $fileName (${sortedEntries.length} exercises)',
+      );
+    }
   }
 
   _removeObsoleteFiles(outputDir);
@@ -53,8 +56,10 @@ void main() {
     (sum, entries) => sum + entries.length,
   );
 
-  print('🎉 Done.');
-  print('📦 Generated $total canonical exercise definitions.');
+  if (kDebugMode) {
+    print('🎉 Done.');
+    print('📦 Generated $total canonical exercise definitions.');
+  }
 }
 
 /// Builds one canonical entry per DISTINCT EXERCISE.
@@ -256,9 +261,6 @@ String _muscleToFileName(MuscleGroup muscle) {
 
     case MuscleGroup.absCore:
       return 'core';
-
-    default:
-      return 'other';
   }
 }
 
@@ -412,9 +414,11 @@ void _removeObsoleteFiles(Directory outputDir) {
     if (file.existsSync()) {
       file.deleteSync();
 
-      print(
-        '🗑️ Removed $fileName',
-      );
+      if (kDebugMode) {
+        print(
+          '🗑️ Removed $fileName',
+        );
+      }
     }
   }
 }

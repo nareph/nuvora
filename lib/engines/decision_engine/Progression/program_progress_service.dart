@@ -21,6 +21,9 @@ import '../models/program_progress.dart';
 /// • completion
 ///
 /// It never modifies the TrainingProgram.
+///
+/// [now] is the reference date used to calculate temporal progression.
+/// Supplying it makes the service deterministic and testable.
 class ProgramProgressService {
   final PhasePlanner _phasePlanner;
   final MesocyclePlanner _mesocyclePlanner;
@@ -39,9 +42,15 @@ class ProgramProgressService {
         _deloadPlanner = deloadPlanner;
 
   ProgramProgress calculate(
-    TrainingProgram program,
-  ) {
-    final currentWeek = _calculateCurrentWeek(program);
+    TrainingProgram program, {
+    DateTime? now,
+  }) {
+    final referenceDate = now ?? DateTime.now();
+
+    final currentWeek = _calculateCurrentWeek(
+      program,
+      now: referenceDate,
+    );
 
     final phase = _phasePlanner.phaseForWeek(
       currentWeek: currentWeek,
@@ -87,9 +96,22 @@ class ProgramProgressService {
   // ----------------------------------------------------------
 
   int _calculateCurrentWeek(
-    TrainingProgram program,
-  ) {
-    final daysSinceStart = DateTime.now().difference(program.createdAt).inDays;
+    TrainingProgram program, {
+    required DateTime now,
+  }) {
+    final referenceDay = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    );
+
+    final programStartDay = DateTime(
+      program.createdAt.year,
+      program.createdAt.month,
+      program.createdAt.day,
+    );
+
+    final daysSinceStart = referenceDay.difference(programStartDay).inDays;
 
     if (daysSinceStart < 0) {
       return 1;

@@ -46,10 +46,14 @@ class ConsistencyProgressScreen extends StatelessWidget {
               label: 'Weekly frequency',
               value: consistency.weeklyFrequency.toStringAsFixed(1),
             ),
-            _StatCard(
-              label: 'Consecutive training days',
-              value: '${consistency.consecutiveTrainingDays}',
-            ),
+            // "Consecutive training days" removed — it reset to 0 on
+            // every rest day, even rest days the user's own program
+            // schedules on purpose (e.g. 5-day program, weekends off).
+            // It punished exactly the adherence it was meant to
+            // reward, and added nothing beyond consistencyScore /
+            // weeklyFrequency above. The underlying
+            // WorkoutConsistency.consecutiveTrainingDays field is
+            // still computed but no longer shown.
             _StatCard(
               label: 'Trend',
               value: consistency.trend.displayName,

@@ -29,6 +29,7 @@
 //
 // Usage: dart run tool/find_duplicate_candidates.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:gymgenius/domain/enums/exports.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercises/splits/exports.dart';
@@ -39,30 +40,39 @@ void main() {
   final rawCount = _countRawEntries();
   final entries = _canonicalizeByName();
 
-  print('📦 $rawCount raw entries across all split source files.');
-  print('📦 ${entries.length} distinct exercises after name-based dedup '
-      '(same as generate_catalog_definitions.dart).\n');
+  if (kDebugMode) {
+    print('📦 $rawCount raw entries across all split source files.');
+    print('📦 ${entries.length} distinct exercises after name-based dedup '
+        '(same as generate_catalog_definitions.dart).\n');
+  }
 
   final signatureHits = _findSignatureDuplicates(entries);
   final descriptionHits = _findDescriptionDuplicates(entries, signatureHits);
 
   if (signatureHits.isEmpty && descriptionHits.isEmpty) {
-    print('✅ No duplicate candidates found among distinctly-named exercises.');
+    if (kDebugMode) {
+      print(
+          '✅ No duplicate candidates found among distinctly-named exercises.');
+    }
     return;
   }
 
   if (signatureHits.isNotEmpty) {
-    print('🔴 HIGH CONFIDENCE — different names, but same equipment/'
-        'pattern/mechanics/force/laterality/plane and same target-muscle '
-        'set:\n');
+    if (kDebugMode) {
+      print('🔴 HIGH CONFIDENCE — different names, but same equipment/'
+          'pattern/mechanics/force/laterality/plane and same target-muscle '
+          'set:\n');
+    }
     for (final group in signatureHits) {
       _printGroup(group);
     }
   }
 
   if (descriptionHits.isNotEmpty) {
-    print('🟡 REVIEW NEEDED — same equipment, descriptions look alike, '
-        'but attributes differ somewhat (read before merging):\n');
+    if (kDebugMode) {
+      print('🟡 REVIEW NEEDED — same equipment, descriptions look alike, '
+          'but attributes differ somewhat (read before merging):\n');
+    }
     for (final pair in descriptionHits) {
       _printGroup(pair);
     }
@@ -70,9 +80,11 @@ void main() {
 
   final totalCandidates = signatureHits.fold<int>(0, (s, g) => s + g.length) +
       descriptionHits.fold<int>(0, (s, g) => s + g.length);
-  print('🔎 $totalCandidates entries across '
-      '${signatureHits.length + descriptionHits.length} suspected group(s). '
-      'Nothing was changed — review and fix in the SOURCE split files.');
+  if (kDebugMode) {
+    print('🔎 $totalCandidates entries across '
+        '${signatureHits.length + descriptionHits.length} suspected group(s). '
+        'Nothing was changed — review and fix in the SOURCE split files.');
+  }
 }
 
 // ============================================================
@@ -267,16 +279,20 @@ Set<String> _normalizeWords(String text) {
 
 void _printGroup(List<ExercisePoolEntry> group) {
   for (final entry in group) {
-    print('  • ${entry.name}  [id: ${entry.id}]');
-    print('      equipment: ${entry.equipmentType.name}, '
-        'category: ${entry.category.name}, '
-        'pattern: ${entry.movementPattern.name}');
-    print('      target: ${entry.targetMuscles.map((m) => m.name).join(', ')}'
-        '  secondary: ${entry.secondaryMuscles.map((m) => m.name).join(', ')}');
-    print(
-        '      "${entry.description.replaceAll('\n', ' ').replaceAll('**', '')}"');
+    if (kDebugMode) {
+      print('  • ${entry.name}  [id: ${entry.id}]');
+
+      print('      equipment: ${entry.equipmentType.name}, '
+          'category: ${entry.category.name}, '
+          'pattern: ${entry.movementPattern.name}');
+      print('      target: ${entry.targetMuscles.map((m) => m.name).join(', ')}'
+          '  secondary: ${entry.secondaryMuscles.map((m) => m.name).join(', ')}');
+      print(
+          '      "${entry.description.replaceAll('\n', ' ').replaceAll('**', '')}"');
+
+      print('');
+    }
   }
-  print('');
 }
 
 class _NamedSource {

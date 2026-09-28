@@ -4,7 +4,9 @@ import 'package:gymgenius/domain/entities/food_item.dart';
 import 'package:gymgenius/domain/entities/health_profile.dart';
 import 'package:gymgenius/domain/entities/logged_food_portion.dart';
 import 'package:gymgenius/domain/entities/meal.dart';
+import 'package:gymgenius/domain/entities/meal_portion_option.dart';
 import 'package:gymgenius/domain/entities/nutrition_log.dart';
+import 'package:gymgenius/domain/entities/nutrition_adherence_snapshot.dart';
 import 'package:gymgenius/domain/entities/nutrition_plan.dart';
 import 'package:gymgenius/domain/enums/meal_type.dart';
 import 'package:gymgenius/domain/repositories/health_repository.dart';
@@ -20,7 +22,8 @@ import 'package:gymgenius/engines/nutrition_engine/trackers/adherence_tracker.da
 enum NutritionUiState { initial, loading, ready, error }
 
 class NutritionViewModel extends ChangeNotifier {
-  final NutritionPlan plan;
+  NutritionPlan _plan;
+  NutritionPlan get plan => _plan;
   final UserRepository _userRepository;
   final HealthRepository _healthRepository;
   final NutritionRepository _nutritionRepository;
@@ -30,7 +33,7 @@ class NutritionViewModel extends ChangeNotifier {
   final AdherenceTracker _adherenceTracker;
 
   NutritionViewModel({
-    required this.plan,
+    required NutritionPlan plan,
     required UserRepository userRepository,
     required HealthRepository healthRepository,
     required NutritionRepository nutritionRepository,
@@ -38,7 +41,8 @@ class NutritionViewModel extends ChangeNotifier {
     FoodKnowledgeBase foodKnowledgeBase = const FoodKnowledgeBase(),
     MealLogBuilder mealLogBuilder = const MealLogBuilder(),
     AdherenceTracker adherenceTracker = const AdherenceTracker(),
-  })  : _userRepository = userRepository,
+  })  : _plan = plan,
+        _userRepository = userRepository,
         _healthRepository = healthRepository,
         _nutritionRepository = nutritionRepository,
         _nutritionEngine = nutritionEngine,
@@ -57,6 +61,9 @@ class NutritionViewModel extends ChangeNotifier {
 
   List<NutritionLog> _logs = const [];
   List<NutritionLog> get logs => _logs;
+
+  NutritionAdherenceSnapshot? _nutritionSnapshot;
+  NutritionAdherenceSnapshot? get nutritionSnapshot => _nutritionSnapshot;
 
   List<FoodItem> _availableFoods = const [];
   List<FoodItem> get availableFoods => _availableFoods;
@@ -77,6 +84,45 @@ class NutritionViewModel extends ChangeNotifier {
 
   bool isMealLogged(Meal meal) => _logs.any((log) => log.planMealId == meal.id);
 
+  bool isChangingMeal(String mealId) => _changingMealIds.contains(mealId);
+
+  final Set<String> _changingMealIds = <String>{};
+
+  /// Replaces one suggested meal and persists the updated daily plan.
+  ///
+  /// A logged meal is intentionally not replaceable: the log represents what
+  /// the user actually ate and must remain consistent with the plan history.
+  Future<bool> replaceSuggestedMeal(Meal meal) async {
+    final profile = _profile;
+    if (profile == null || isChangingMeal(meal.id)) return false;
+
+    if (_logs.any((log) => log.planMealId == meal.id)) return false;
+
+    _changingMealIds.add(meal.id);
+    notifyListeners();
+
+    try {
+      final updatedPlan = await _nutritionEngine.replaceSuggestedMeal(
+        plan: _plan,
+        profile: profile,
+        meal: meal,
+      );
+      _plan = updatedPlan;
+      _refreshNutritionSnapshot();
+      return true;
+    } catch (e, s) {
+      Log.error(
+        'NutritionViewModel.replaceSuggestedMeal failed',
+        error: e,
+        stackTrace: s,
+      );
+      return false;
+    } finally {
+      _changingMealIds.remove(meal.id);
+      notifyListeners();
+    }
+  }
+
   Future<void> load() async {
     _state = NutritionUiState.loading;
     notifyListeners();
@@ -92,6 +138,7 @@ class NutritionViewModel extends ChangeNotifier {
         user.id,
         plan.date,
       );
+      _refreshNutritionSnapshot();
       _state = NutritionUiState.ready;
     } catch (e, s) {
       Log.error('NutritionViewModel.load failed', error: e, stackTrace: s);
@@ -114,9 +161,13 @@ class NutritionViewModel extends ChangeNotifier {
 
   /// Logs an existing [MealTemplate] from the full catalog — the
   /// "database meal" tier, distinct from today's plan suggestions.
+  ///
+  /// [portion] is optional so all existing callers remain valid. When it is
+  /// supplied, the template macros are scaled to that human-friendly size.
   Future<void> logDatabaseMeal({
     required MealTemplate template,
     required MealType mealType,
+    MealPortionOption? portion,
   }) async {
     final profile = _profile;
     if (profile == null) return;
@@ -125,6 +176,7 @@ class NutritionViewModel extends ChangeNotifier {
       template: template,
       mealType: mealType,
       userId: profile.userId,
+      portion: portion,
     );
     await _persistLog(log, profile);
   }
@@ -177,6 +229,7 @@ class NutritionViewModel extends ChangeNotifier {
       profile.userId,
       plan.date,
     );
+    _refreshNutritionSnapshot();
     notifyListeners();
   }
 
@@ -190,6 +243,16 @@ class NutritionViewModel extends ChangeNotifier {
       profile.userId,
       plan.date,
     );
+    _refreshNutritionSnapshot();
     notifyListeners();
   }
+
+  /// Rebuilds the synthesized nutrition state from the current plan and logs.
+  void _refreshNutritionSnapshot() {
+    _nutritionSnapshot = _nutritionEngine.buildAdherenceSnapshot(
+      plan: _plan,
+      logs: _logs,
+    );
+  }
+
 }

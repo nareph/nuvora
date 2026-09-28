@@ -1,6 +1,6 @@
-// lib/engines/ai_coach/ai_coach_engine.dart
 import 'dart:convert';
 
+import 'package:gymgenius/core/logger/logger_service.dart';
 import 'package:gymgenius/domain/entities/weekly_progress_report.dart';
 import 'package:gymgenius/engines/ai_coach/ai_config.dart';
 import 'package:gymgenius/engines/ai_coach/builders/coach_context_builder.dart';
@@ -13,9 +13,15 @@ import 'package:gymgenius/engines/ai_coach/providers/coach_request_options.dart'
 import 'package:gymgenius/engines/ai_coach/providers/local_coach_provider.dart';
 import 'package:gymgenius/engines/ai_coach/validators/coach_response_validator.dart';
 import 'package:gymgenius/engines/decision_engine/models/daily_plan.dart';
-import 'package:gymgenius/core/logger/logger_service.dart';
 
-/// Orchestrates AI Coach flows. Never mutates domain engines or persistence.
+/// Orchestrates AI Coach flows.
+///
+/// Responsibilities:
+/// - builds the deterministic CoachContext;
+/// - calls the configured cloud provider when available;
+/// - parses and validates cloud responses;
+/// - falls back to deterministic local coaching;
+/// - never mutates domain engines or persistence.
 class AICoachEngine {
   final AIProvider _primary;
   final LocalCoachProvider _local;
@@ -23,6 +29,7 @@ class AICoachEngine {
   final CoachResponseValidator _validator;
 
   static const _tag = 'AICoachEngine';
+  static const _localProviderId = 'local';
 
   AICoachEngine({
     required AIProvider primary,
@@ -34,11 +41,19 @@ class AICoachEngine {
         _contextBuilder = contextBuilder,
         _validator = validator ?? CoachResponseValidator();
 
-  CoachContext buildContext(DailyPlan plan) => _contextBuilder.build(plan);
+  /// Builds the compact context consumed by the AI Coach.
+  CoachContext buildContext(DailyPlan plan) {
+    return _contextBuilder.build(plan);
+  }
 
-  Future<CoachResponse> generateDailyCoaching(DailyPlan plan) async {
+  /// Generates today's coaching from the deterministic DailyPlan.
+  Future<CoachResponse> generateDailyCoaching(
+    DailyPlan plan,
+  ) async {
     final context = _contextBuilder.build(plan);
-    final contextJson = jsonEncode(context.toPromptMap());
+    final contextJson = jsonEncode(
+      context.toPromptMap(),
+    );
 
     return _completeStructured(
       context: context,
@@ -48,11 +63,13 @@ class AICoachEngine {
     );
   }
 
+  /// Generates the weekly coaching summary.
   Future<CoachResponse> generateWeeklySummary({
     required DailyPlan plan,
     required WeeklyProgressReport report,
   }) async {
     final context = _contextBuilder.build(plan);
+
     final weeklyMap = {
       'weekStart': report.weekStart.toIso8601String(),
       'weekEnd': report.weekEnd.toIso8601String(),
@@ -82,21 +99,29 @@ class AICoachEngine {
     );
   }
 
+  /// Answers a user question using the deterministic context and
+  /// the clipped recent conversation history.
   Future<CoachResponse> chat({
     required DailyPlan plan,
     required String question,
     List<ConversationMessage> history = const [],
   }) async {
     final context = _contextBuilder.build(plan);
+
     final clipped = history.length > AIConfig.coachMaxHistoryMessages
-        ? history.sublist(history.length - AIConfig.coachMaxHistoryMessages)
+        ? history.sublist(
+            history.length - AIConfig.coachMaxHistoryMessages,
+          )
         : history;
+
     final historyJson = jsonEncode(
       clipped
-          .map((m) => {
-                'role': m.role.value,
-                'content': m.content,
-              })
+          .map(
+            (message) => {
+              'role': message.role.value,
+              'content': message.content,
+            },
+          )
           .toList(),
     );
 
@@ -108,13 +133,15 @@ class AICoachEngine {
         historyJson: historyJson,
         question: question,
       ),
-      localBuilder: () =>
-          _local.buildChat(context: context, question: question),
+      localBuilder: () => _local.buildChat(
+        context: context,
+        question: question,
+      ),
     );
   }
 
   // ============================================================
-  // Core completion with structured parsing
+  // Core completion
   // ============================================================
 
   Future<CoachResponse> _completeStructured({
@@ -123,9 +150,11 @@ class AICoachEngine {
     required String userPrompt,
     required CoachResponse Function() localBuilder,
   }) async {
-    final now = DateTime.now();
+    final generatedAt = DateTime.now();
 
-    // Try cloud provider if available
+    // -----------------------------------------------------------------------
+    // Cloud provider
+    // -----------------------------------------------------------------------
     if (_primary.isAvailable && AIConfig.canUseCoachCloud) {
       try {
         final raw = await _primary
@@ -140,47 +169,96 @@ class AICoachEngine {
             )
             .timeout(AIConfig.coachTimeout);
 
+        // Do not log the generated health/coaching text itself.
         Log.debug(
-            'Raw response from provider: ${raw.substring(0, raw.length.clamp(0, 200))}...',
-            tag: _tag);
+          'Cloud provider returned ${raw.length} characters.',
+          tag: _tag,
+        );
 
-        // Try to parse the response
         final parsed = _validator.tryParse(
           raw: raw,
           context: context,
           providerId: _primary.id,
           promptVersion: CoachPrompts.promptVersion,
-          generatedAt: now,
+          generatedAt: generatedAt,
         );
 
         if (parsed != null) {
-          Log.debug('✅ Parsed structured response', tag: _tag);
+          Log.debug(
+            'Parsed structured cloud response.',
+            tag: _tag,
+          );
+
           return parsed;
         }
 
-        // If parsing failed, use text fallback with the raw message
-        Log.warning('⚠️ Structured parsing failed, using text fallback',
-            tag: _tag);
+        Log.warning(
+          'Structured cloud parsing failed; using validated text fallback.',
+          tag: _tag,
+        );
+
         return _validator.textFallback(
           message: raw,
           context: context,
           providerId: _primary.id,
           promptVersion: CoachPrompts.promptVersion,
-          generatedAt: now,
+          generatedAt: generatedAt,
         );
-      } catch (e) {
-        Log.warning('⚠️ Cloud provider failed: $e, falling back to local',
-            tag: _tag);
-        // Fall through to local
+      } catch (e, s) {
+        Log.warning(
+          'Cloud provider failed: $e. Falling back to local Coach.',
+          tag: _tag,
+        );
+
+        Log.debug(
+          '$s',
+          tag: _tag,
+        );
       }
     }
 
-    // Fallback to local provider
-    final localResponse = localBuilder();
-    return localResponse.copyWith(
-      providerId: 'local',
-      usedFallback: true,
-      generatedAt: now,
-    );
+    // -----------------------------------------------------------------------
+    // Local deterministic fallback
+    // -----------------------------------------------------------------------
+    try {
+      final localResponse = localBuilder();
+
+      final normalizedLocalResponse = localResponse.copyWith(
+        providerId: _localProviderId,
+        promptVersion: CoachPrompts.promptVersion,
+        generatedAt: generatedAt,
+        usedFallback: true,
+      );
+
+      // The local provider is deterministic, but it still goes through
+      // the exact same response guardrails as the cloud response.
+      final guardedLocalResponse = _validator.guardResponse(
+        response: normalizedLocalResponse,
+        context: context,
+      );
+
+      Log.debug(
+        'Using validated local Coach response.',
+        tag: _tag,
+      );
+
+      return guardedLocalResponse;
+    } catch (e, s) {
+      // The local provider itself should normally never fail, but keep a
+      // final safe path so the Coach layer does not crash the user flow.
+      Log.error(
+        'Local Coach provider failed: $e',
+        tag: _tag,
+        stackTrace: s,
+      );
+
+      return _validator.textFallback(
+        message: '',
+        context: context,
+        providerId: _localProviderId,
+        promptVersion: CoachPrompts.promptVersion,
+        generatedAt: generatedAt,
+      );
+    }
   }
 }

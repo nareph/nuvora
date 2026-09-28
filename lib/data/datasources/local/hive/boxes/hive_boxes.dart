@@ -16,7 +16,6 @@ import '../models/hydration_log_hive_model.dart';
 import '../models/mental_wellness_hive_model.dart';
 import '../models/habit_hive_model.dart';
 import '../models/habit_log_hive_model.dart';
-import '../models/logged_food_portion_hive_model.dart';
 import '../models/nutrition_log_hive_model.dart';
 
 class HiveBoxes {

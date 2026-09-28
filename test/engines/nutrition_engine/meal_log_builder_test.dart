@@ -1,7 +1,6 @@
 import 'package:gymgenius/domain/entities/food_item.dart';
 import 'package:gymgenius/domain/entities/logged_food_portion.dart';
 import 'package:gymgenius/domain/entities/meal.dart';
-import 'package:gymgenius/domain/enums/budget_level.dart';
 import 'package:gymgenius/domain/enums/food_category.dart';
 import 'package:gymgenius/domain/enums/meal_objective.dart';
 import 'package:gymgenius/domain/enums/meal_type.dart';

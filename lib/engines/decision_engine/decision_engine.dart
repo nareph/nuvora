@@ -1,8 +1,8 @@
-// lib/engines/decision_engine/decision_engine.dart
-
+import 'package:gymgenius/core/logger/logger_service.dart';
 import 'package:gymgenius/domain/entities/daily_checkin.dart';
 import 'package:gymgenius/domain/entities/health_platform_snapshot.dart';
 import 'package:gymgenius/domain/entities/health_profile.dart';
+import 'package:gymgenius/domain/entities/nutrition_adherence_snapshot.dart';
 import 'package:gymgenius/domain/entities/progress_snapshot.dart';
 import 'package:gymgenius/domain/entities/recovery_status.dart';
 import 'package:gymgenius/domain/entities/today_workout.dart';
@@ -37,11 +37,6 @@ import 'services/workout_adaptation_service.dart';
 /// • Attach NutritionPlan
 /// • Build HealthDecision
 /// • Produce the final DailyPlan
-///
-/// Recovery is strictly data-driven:
-///
-/// • no DailyCheckIn → no RecoveryStatus
-/// • no RecoveryStatus → no recovery adaptation
 ///
 /// The DecisionEngine itself contains no domain business logic.
 class DecisionEngine {
@@ -79,7 +74,9 @@ class DecisionEngine {
 
   /// Builds the complete plan for today.
   ///
-  /// A RecoveryStatus is computed ONLY when [checkIn] is non-null.
+  /// The synchronous path never performs nutrition repository I/O. Callers
+  /// may provide an already-computed [nutritionAdherenceSnapshot] when they
+  /// have one available.
   DailyPlan buildDailyPlan(
     TrainingProgram trainingProgram,
     HealthProfile healthProfile, {
@@ -87,11 +84,13 @@ class DecisionEngine {
     DailyCheckIn? checkIn,
     ProgressSnapshot? progressSnapshot,
     HealthPlatformSnapshot? healthPlatformSnapshot,
+    NutritionAdherenceSnapshot? nutritionAdherenceSnapshot,
   }) {
     final currentDate = now ?? DateTime.now();
 
     final progress = _programProgressService.calculate(
       trainingProgram,
+      now: currentDate,
     );
 
     final splitDisplayName = _findSplitDisplayName(
@@ -105,7 +104,6 @@ class DecisionEngine {
       now: currentDate,
     );
 
-    // IMPORTANT:
     // No check-in means no recovery computation.
     final RecoveryStatus? recoveryStatus =
         checkIn != null ? _recoveryEngine.compute(checkIn) : null;
@@ -119,6 +117,7 @@ class DecisionEngine {
       recoveryStatus: recoveryStatus,
       progressSnapshot: progressSnapshot,
       healthPlatformSnapshot: healthPlatformSnapshot,
+      nutritionAdherenceSnapshot: nutritionAdherenceSnapshot,
     );
 
     return _buildDailyPlanFromContext(
@@ -135,6 +134,10 @@ class DecisionEngine {
 
   /// Builds the daily plan and persists recovery data only when a real
   /// DailyCheckIn has been supplied.
+  ///
+  /// Before rules are evaluated, the Decision Engine obtains a compact
+  /// nutrition snapshot through the NutritionRule boundary. Raw nutrition
+  /// logs never enter DecisionContext.
   Future<DailyPlan> buildDailyPlanAndPersist(
     TrainingProgram trainingProgram,
     HealthProfile healthProfile, {
@@ -162,7 +165,6 @@ class DecisionEngine {
 
     RecoveryStatus? recoveryStatus;
 
-    // IMPORTANT:
     // Recovery persistence happens ONLY after an actual check-in.
     if (checkIn != null) {
       recoveryStatus = await _recoveryEngine.computeAndPersist(
@@ -170,7 +172,7 @@ class DecisionEngine {
       );
     }
 
-    final context = DecisionContext(
+    final baseContext = DecisionContext(
       now: currentDate,
       healthProfile: healthProfile,
       trainingProgram: trainingProgram,
@@ -179,6 +181,28 @@ class DecisionEngine {
       recoveryStatus: recoveryStatus,
       progressSnapshot: progressSnapshot,
       healthPlatformSnapshot: healthPlatformSnapshot,
+    );
+
+    NutritionAdherenceSnapshot? nutritionAdherenceSnapshot;
+    try {
+      nutritionAdherenceSnapshot =
+          await _nutritionRule.buildNutritionAdherenceSnapshot(
+        context: baseContext,
+        plannedWorkout: plannedWorkout,
+      );
+    } catch (e, s) {
+      // Nutrition analysis must not make the complete Decision Engine fail.
+      // The context remains valid; nutrition-dependent rules can treat a null
+      // snapshot as "no nutrition observation available".
+      Log.error(
+        'DecisionEngine: Nutrition adherence snapshot failed',
+        error: e,
+        stackTrace: s,
+      );
+    }
+
+    final context = baseContext.copyWith(
+      nutritionAdherenceSnapshot: nutritionAdherenceSnapshot,
     );
 
     final decisions = _evaluateRules(context);
@@ -381,10 +405,8 @@ class DecisionEngine {
 
   /// Determines the display name of today's split.
   ///
-  /// IMPORTANT:
-  /// The program itself remains the source of truth for the generated
-  /// weekly structure. The catalog is only used here for the predefined
-  /// stable templates.
+  /// The program remains the source of truth for the generated weekly
+  /// structure. The catalog is only used here for the stable display template.
   String _findSplitDisplayName(
     TrainingProgram program,
     DateTime date,
@@ -410,9 +432,6 @@ class DecisionEngine {
       return 'Workout';
     }
 
-    // Prefer the actual generated schedule when it contains the split
-    // identity. The program currently stores exercises, so the stable
-    // predefined catalog remains the fallback for legacy programs.
     final template = SplitCatalog.templateForDays(
       workoutDays.length,
     );
@@ -423,5 +442,4 @@ class DecisionEngine {
 
     return template[index].displayName;
   }
-
 }

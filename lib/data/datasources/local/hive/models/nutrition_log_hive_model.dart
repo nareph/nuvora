@@ -48,6 +48,13 @@ class NutritionLogHiveModel extends HiveObject {
   @HiveField(13)
   String? note;
 
+  /// Nullable on purpose for backward compatibility.
+  ///
+  /// Old Hive records do not contain field 14. The domain mapper will derive
+  /// the appropriate quality from [source] when this value is null.
+  @HiveField(14)
+  String? dataQuality;
+
   NutritionLogHiveModel({
     required this.id,
     required this.userId,
@@ -63,5 +70,6 @@ class NutritionLogHiveModel extends HiveObject {
     this.planMealId,
     this.portions = const [],
     this.note,
+    this.dataQuality,
   });
 }

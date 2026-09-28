@@ -33,3 +33,4 @@ export 'meal_type.dart';
 export 'meal_objective.dart';
 export 'progress_period.dart';
 export 'trend_direction.dart';
+export 'nutrition_data_quality.dart';

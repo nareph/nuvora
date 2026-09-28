@@ -31,13 +31,14 @@ class NutritionLogHiveModelAdapter extends TypeAdapter<NutritionLogHiveModel> {
       planMealId: fields[11] as String?,
       portions: (fields[12] as List).cast<LoggedFoodPortionHiveModel>(),
       note: fields[13] as String?,
+      dataQuality: fields[14] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, NutritionLogHiveModel obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -65,7 +66,9 @@ class NutritionLogHiveModelAdapter extends TypeAdapter<NutritionLogHiveModel> {
       ..writeByte(12)
       ..write(obj.portions)
       ..writeByte(13)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(14)
+      ..write(obj.dataQuality);
   }
 
   @override

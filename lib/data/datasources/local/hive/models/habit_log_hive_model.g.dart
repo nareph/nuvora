@@ -23,13 +23,14 @@ class HabitLogHiveModelAdapter extends TypeAdapter<HabitLogHiveModel> {
       date: fields[3] as DateTime,
       completed: fields[4] as bool,
       loggedAt: fields[5] as DateTime,
+      value: fields[6] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, HabitLogHiveModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +42,9 @@ class HabitLogHiveModelAdapter extends TypeAdapter<HabitLogHiveModel> {
       ..writeByte(4)
       ..write(obj.completed)
       ..writeByte(5)
-      ..write(obj.loggedAt);
+      ..write(obj.loggedAt)
+      ..writeByte(6)
+      ..write(obj.value);
   }
 
   @override

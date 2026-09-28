@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:gymgenius/data/datasources/local/hive/boxes/hive_boxes.dart';
 import 'package:gymgenius/data/datasources/local/hive/models/logged_food_portion_hive_model.dart';
 import 'package:gymgenius/data/datasources/local/hive/models/nutrition_log_hive_model.dart';
+import 'package:gymgenius/data/mappers/nutrition_mapper.dart';
 import 'package:gymgenius/data/repositories/nutrition_repository_impl.dart';
 import 'package:gymgenius/domain/entities/logged_food_portion.dart';
 import 'package:gymgenius/domain/entities/nutrition_log.dart';
 import 'package:gymgenius/domain/enums/meal_type.dart';
+import 'package:gymgenius/domain/enums/nutrition_data_quality.dart';
 import 'package:gymgenius/domain/enums/nutrition_log_source.dart';
 import 'package:gymgenius/domain/value_objects/macro_targets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -84,5 +86,29 @@ void main() {
 
     await Hive.close();
     await tmpDir.delete(recursive: true);
+  });
+
+  test('derives data quality for legacy logs without field 14', () {
+    final legacyModel = NutritionLogHiveModel(
+      id: 'legacy',
+      userId: 'user_legacy',
+      name: 'Rice and eggs',
+      source: NutritionLogSource.composed.value,
+      mealType: MealType.lunch.value,
+      calories: 520,
+      proteinG: 25,
+      carbsG: 60,
+      fatG: 12,
+      loggedAt: DateTime(2026, 8, 17, 13, 30),
+      portions: const [],
+      dataQuality: null,
+    );
+
+    final domain = NutritionMapper.toLogDomain(legacyModel);
+
+    expect(
+      domain.dataQuality,
+      NutritionDataQuality.estimated,
+    );
   });
 }

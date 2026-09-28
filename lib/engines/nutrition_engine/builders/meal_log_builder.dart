@@ -6,6 +6,7 @@ import 'package:gymgenius/domain/enums/meal_type.dart';
 import 'package:gymgenius/domain/enums/nutrition_log_source.dart';
 import 'package:gymgenius/domain/value_objects/macro_targets.dart';
 import 'package:gymgenius/engines/nutrition_engine/food_knowledge_base/models/meal_template.dart';
+import 'package:gymgenius/domain/entities/meal_portion_option.dart';
 
 /// Builds [NutritionLog] entries for the four-tier logging system:
 /// 1. suggested meal as-is, 2. saved database meal, 3. food
@@ -39,17 +40,28 @@ class MealLogBuilder {
 
   /// Tier 2 — log an existing [MealTemplate] chosen from the full food
   /// knowledge base catalog (not necessarily suggested for today).
-  /// Uses the template's base macros as-is — the user picked "I ate
-  /// this dish", not a custom portion; Compose/Manual remain available
-  /// for anyone who wants to scale precisely.
+  ///
+  /// When [portion] is provided, the template's reference macros are scaled
+  /// through [MealTemplate.macrosForPortion]. When it is omitted, the
+  /// reference [MealTemplate.baseMacros] are preserved for backwards
+  /// compatibility.
+  ///
+  /// The human portion label is intentionally not persisted yet: the current
+  /// [NutritionLog] schema already stores the normalized nutritional result
+  /// and [templateId]. A future persistence change can add an explicit
+  /// portion id/label when that becomes necessary.
   NutritionLog fromMealTemplate({
     required MealTemplate template,
     required MealType mealType,
     required String userId,
+    MealPortionOption? portion,
     DateTime? loggedAt,
     String? note,
   }) {
     final now = loggedAt ?? DateTime.now();
+    final macros = portion == null
+        ? template.baseMacros
+        : template.macrosForPortion(portion);
 
     return NutritionLog(
       id: _newId(userId, now),
@@ -57,7 +69,7 @@ class MealLogBuilder {
       name: template.name,
       source: NutritionLogSource.database,
       mealType: mealType,
-      macros: template.baseMacros,
+      macros: macros,
       loggedAt: now,
       templateId: template.id,
       note: note,

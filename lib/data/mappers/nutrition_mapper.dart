@@ -10,6 +10,7 @@ import 'package:gymgenius/domain/entities/nutrition_plan.dart';
 import 'package:gymgenius/domain/entities/nutrition_profile.dart';
 import 'package:gymgenius/domain/enums/meal_objective.dart';
 import 'package:gymgenius/domain/enums/meal_type.dart';
+import 'package:gymgenius/domain/enums/nutrition_data_quality.dart';
 import 'package:gymgenius/domain/enums/nutrition_log_source.dart';
 import 'package:gymgenius/domain/enums/nutrition_status.dart';
 import 'package:gymgenius/domain/value_objects/macro_targets.dart';
@@ -151,27 +152,33 @@ class NutritionMapper {
       planMealId: model.planMealId,
       portions: model.portions.map(_toPortionDomain).toList(),
       note: model.note,
+      dataQuality: model.dataQuality == null
+          ? null
+          : NutritionDataQualityExtension.fromValue(
+              model.dataQuality!,
+            ),
     );
   }
 
-  static NutritionLogHiveModel toLogHive(NutritionLog entity) {
-    return NutritionLogHiveModel(
-      id: entity.id,
-      userId: entity.userId,
-      name: entity.name,
-      source: entity.source.value,
-      mealType: entity.mealType.value,
-      calories: entity.macros.calories,
-      proteinG: entity.macros.proteinG,
-      carbsG: entity.macros.carbsG,
-      fatG: entity.macros.fatG,
-      loggedAt: entity.loggedAt,
-      templateId: entity.templateId,
-      planMealId: entity.planMealId,
-      portions: entity.portions.map(_toPortionHive).toList(),
-      note: entity.note,
-    );
-  }
+static NutritionLogHiveModel toLogHive(NutritionLog entity) {
+  return NutritionLogHiveModel(
+    id: entity.id,
+    userId: entity.userId,
+    name: entity.name,
+    source: entity.source.value,
+    mealType: entity.mealType.value,
+    calories: entity.macros.calories,
+    proteinG: entity.macros.proteinG,
+    carbsG: entity.macros.carbsG,
+    fatG: entity.macros.fatG,
+    loggedAt: entity.loggedAt,
+    templateId: entity.templateId,
+    planMealId: entity.planMealId,
+    portions: entity.portions.map(_toPortionHive).toList(),
+    note: entity.note,
+    dataQuality: entity.dataQuality.value,
+  );
+}
 
   static LoggedFoodPortion _toPortionDomain(LoggedFoodPortionHiveModel model) {
     return LoggedFoodPortion(
