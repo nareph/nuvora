@@ -1,6 +1,7 @@
 import 'package:gymgenius/domain/enums/budget_level.dart';
 import 'package:gymgenius/domain/enums/meal_objective.dart';
 import 'package:gymgenius/domain/value_objects/macro_targets.dart';
+
 import '../../../models/meal_template.dart';
 
 const List<MealTemplate> cameroonBeansDishes = [
@@ -8,29 +9,52 @@ const List<MealTemplate> cameroonBeansDishes = [
     id: 'cm_meal_beans_plantain',
     name: 'Beans and plantain',
     objective: MealObjective.highEnergy,
-    ingredientIds: ['cm_beans', 'cm_plantain_boiled'],
-    ingredientNames: ['Beans', 'Boiled plantain'],
+    ingredientIds: [
+      'cm_beans',
+      'cm_plantain_boiled',
+      'cm_palm_oil',
+    ],
+    ingredientNames: [
+      'Beans',
+      'Boiled plantain',
+      'Palm oil',
+    ],
     baseMacros: MacroTargets(
       calories: 550,
       proteinG: 20,
       carbsG: 95,
       fatG: 4,
     ),
-    tags: ['lunch', 'dinner', 'staple'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_beans_avocado',
     name: 'Beans with avocado',
     objective: MealObjective.recovery,
-    ingredientIds: ['cm_beans', 'cm_avocado', 'cm_tomato'],
-    ingredientNames: ['Beans', 'Avocado', 'Tomato'],
+    ingredientIds: [
+      'cm_beans',
+      'cm_avocado',
+      'cm_tomato',
+    ],
+    ingredientNames: [
+      'Beans',
+      'Avocado',
+      'Tomato',
+    ],
     baseMacros: MacroTargets(
       calories: 420,
       proteinG: 18,
       carbsG: 40,
       fatG: 18,
     ),
-    tags: ['lunch', 'recovery'],
+    tags: [
+      'lunch',
+      'recovery',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_koki',
@@ -41,14 +65,21 @@ const List<MealTemplate> cameroonBeansDishes = [
       'cm_palm_oil',
       'cm_plantain_boiled',
     ],
-    ingredientNames: ['Black-eyed peas', 'Palm oil', 'Plantain'],
+    ingredientNames: [
+      'Koki beans',
+      'Palm oil',
+      'Boiled plantain',
+    ],
     baseMacros: MacroTargets(
       calories: 580,
       proteinG: 18,
       carbsG: 70,
       fatG: 22,
     ),
-    tags: ['traditional', 'lunch'],
+    tags: [
+      'traditional',
+      'lunch',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_rice_beans',
@@ -58,17 +89,24 @@ const List<MealTemplate> cameroonBeansDishes = [
       'cm_rice',
       'cm_beans',
       'cm_palm_oil',
-      'cm_onion',
-      'cm_hot_pepper',
     ],
-    ingredientNames: ['Rice', 'Beans', 'Palm oil', 'Onion', 'Hot pepper'],
+    ingredientNames: [
+      'White rice',
+      'Beans',
+      'Palm oil',
+    ],
     baseMacros: MacroTargets(
       calories: 520,
       proteinG: 18,
       carbsG: 78,
       fatG: 12,
     ),
-    tags: ['lunch', 'dinner', 'staple', 'vegetarian'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+      'vegetarian',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_beans_yam',
@@ -77,17 +115,23 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_yam',
-      'cm_palm_oil',
-      'cm_onion',
     ],
-    ingredientNames: ['Beans', 'Yam', 'Palm oil', 'Onion'],
+    ingredientNames: [
+      'Beans',
+      'Yam',
+    ],
     baseMacros: MacroTargets(
       calories: 540,
       proteinG: 19,
       carbsG: 85,
       fatG: 10,
     ),
-    tags: ['lunch', 'dinner', 'staple', 'vegetarian'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+      'vegetarian',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_beans_macaroni',
@@ -96,18 +140,23 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_macaroni',
-      'cm_palm_oil',
-      'cm_onion',
-      'cm_tomato',
     ],
-    ingredientNames: ['Beans', 'Pasta', 'Palm oil', 'Onion', 'Tomato'],
+    ingredientNames: [
+      'Beans',
+      'Macaroni',
+    ],
     baseMacros: MacroTargets(
       calories: 500,
       proteinG: 17,
       carbsG: 80,
       fatG: 10,
     ),
-    tags: ['lunch', 'dinner', 'staple', 'vegetarian'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+      'vegetarian',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_beans_tomato_beef',
@@ -118,9 +167,13 @@ const List<MealTemplate> cameroonBeansDishes = [
       'cm_beef',
       'cm_tomato',
       'cm_onion',
-      'cm_palm_oil',
     ],
-    ingredientNames: ['Beans', 'Beef', 'Tomato', 'Onion', 'Palm oil'],
+    ingredientNames: [
+      'Beans',
+      'Beef',
+      'Tomato',
+      'Onion',
+    ],
     baseMacros: MacroTargets(
       calories: 580,
       proteinG: 32,
@@ -128,7 +181,11 @@ const List<MealTemplate> cameroonBeansDishes = [
       fatG: 26,
     ),
     minBudget: BudgetLevel.medium,
-    tags: ['lunch', 'dinner', 'traditional'],
+    tags: [
+      'lunch',
+      'dinner',
+      'traditional',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_beans_tomato_fish',
@@ -139,9 +196,13 @@ const List<MealTemplate> cameroonBeansDishes = [
       'cm_fish',
       'cm_tomato',
       'cm_onion',
-      'cm_palm_oil',
     ],
-    ingredientNames: ['Beans', 'Fish', 'Tomato', 'Onion', 'Palm oil'],
+    ingredientNames: [
+      'Beans',
+      'Fresh fish',
+      'Tomato',
+      'Onion',
+    ],
     baseMacros: MacroTargets(
       calories: 520,
       proteinG: 33,
@@ -150,7 +211,12 @@ const List<MealTemplate> cameroonBeansDishes = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['lunch', 'dinner', 'traditional'],
+    tags: [
+      'lunch',
+      'dinner',
+      'traditional',
+      'fish',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_beans_corn_meal',
@@ -159,17 +225,23 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_corn_flour',
-      'cm_palm_oil',
-      'cm_onion',
     ],
-    ingredientNames: ['Beans', 'Corn flour', 'Palm oil', 'Onion'],
+    ingredientNames: [
+      'Beans',
+      'Corn meal',
+    ],
     baseMacros: MacroTargets(
       calories: 500,
       proteinG: 18,
       carbsG: 75,
       fatG: 12,
     ),
-    tags: ['lunch', 'dinner', 'staple', 'vegetarian'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+      'vegetarian',
+    ],
   ),
   MealTemplate(
     id: 'cm_meal_beans_fufu',
@@ -178,21 +250,24 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_fufu',
-      'cm_palm_oil',
-      'cm_onion',
     ],
-    ingredientNames: ['Beans', 'Fufu', 'Palm oil', 'Onion'],
+    ingredientNames: [
+      'Beans',
+      'Water fufu',
+    ],
     baseMacros: MacroTargets(
       calories: 540,
       proteinG: 17,
       carbsG: 80,
       fatG: 10,
     ),
-    tags: ['lunch', 'dinner', 'staple', 'vegetarian'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+      'vegetarian',
+    ],
   ),
-
-  // Additional Cameroon beans meals
-
   MealTemplate(
     id: 'cm_meal_beans_fried_plantain',
     name: 'Beans with fried plantain',
@@ -200,12 +275,10 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_plantain_fried',
-      'cm_palm_oil',
     ],
     ingredientNames: [
       'Beans',
       'Fried plantain',
-      'Palm oil',
     ],
     baseMacros: MacroTargets(
       calories: 650,
@@ -228,14 +301,10 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_cassava',
-      'cm_palm_oil',
-      'cm_onion',
     ],
     ingredientNames: [
       'Beans',
       'Cassava',
-      'Palm oil',
-      'Onion',
     ],
     baseMacros: MacroTargets(
       calories: 560,
@@ -259,12 +328,10 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_sweet_potato',
-      'cm_onion',
     ],
     ingredientNames: [
       'Beans',
       'Sweet potato',
-      'Onion',
     ],
     baseMacros: MacroTargets(
       calories: 500,
@@ -288,14 +355,10 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_irish_potato',
-      'cm_onion',
-      'cm_tomato',
     ],
     ingredientNames: [
       'Beans',
-      'Irish potatoes',
-      'Onion',
-      'Tomato',
+      'Irish potato',
     ],
     baseMacros: MacroTargets(
       calories: 490,
@@ -319,16 +382,12 @@ const List<MealTemplate> cameroonBeansDishes = [
     ingredientIds: [
       'cm_beans',
       'cm_smoked_fish',
-      'cm_tomato',
       'cm_onion',
-      'cm_palm_oil',
     ],
     ingredientNames: [
       'Beans',
       'Smoked fish',
-      'Tomato',
       'Onion',
-      'Palm oil',
     ],
     baseMacros: MacroTargets(
       calories: 540,
@@ -343,6 +402,7 @@ const List<MealTemplate> cameroonBeansDishes = [
       'dinner',
       'traditional',
       'high_protein',
+      'fish',
     ],
   ),
 ];

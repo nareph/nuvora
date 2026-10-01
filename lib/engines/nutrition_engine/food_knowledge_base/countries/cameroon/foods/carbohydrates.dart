@@ -218,4 +218,51 @@ const List<FoodItem> cameroonCarbohydrates = [
     defaultPortionGrams: 180,
     tags: ['staple', 'traditional'],
   ),
+
+  // -------------------------------------------------------------------------
+  // Additional Cameroon staples
+  // -------------------------------------------------------------------------
+
+  FoodItem(
+    id: 'cm_macabo',
+    name: 'Macabo / cocoyam tuber',
+    country: 'Cameroon',
+    category: FoodCategory.carbohydrate,
+    caloriesPer100g: 142,
+    proteinGPer100g: 1.6,
+    carbsGPer100g: 34.6,
+    fatGPer100g: 0.2,
+    fiberGPer100g: 5.1,
+    defaultPortionLabel: '1 serving',
+    defaultPortionGrams: 180,
+    tags: ['staple', 'traditional'],
+  ),
+  FoodItem(
+    id: 'cm_millet_flour',
+    name: 'Millet flour',
+    country: 'Cameroon',
+    category: FoodCategory.carbohydrate,
+    caloriesPer100g: 378,
+    proteinGPer100g: 11,
+    carbsGPer100g: 73,
+    fatGPer100g: 4.2,
+    fiberGPer100g: 8.5,
+    defaultPortionLabel: '1 cup (120g)',
+    defaultPortionGrams: 120,
+    tags: ['staple', 'traditional', 'flour'],
+  ),
+  FoodItem(
+    id: 'cm_sorghum',
+    name: 'Sorghum grain',
+    country: 'Cameroon',
+    category: FoodCategory.carbohydrate,
+    caloriesPer100g: 329,
+    proteinGPer100g: 10.6,
+    carbsGPer100g: 72,
+    fatGPer100g: 3.5,
+    fiberGPer100g: 6.7,
+    defaultPortionLabel: '1 cup cooked',
+    defaultPortionGrams: 190,
+    tags: ['staple', 'traditional'],
+  ),
 ];

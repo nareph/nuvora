@@ -68,4 +68,23 @@ const List<FoodItem> cameroonFats = [
     defaultPortionGrams: 15,
     tags: ['traditional', 'soup'],
   ),
+
+  // -------------------------------------------------------------------------
+  // Additional Cameroon seed / nut ingredients
+  // -------------------------------------------------------------------------
+
+  FoodItem(
+    id: 'cm_egusi',
+    name: 'Egusi / melon seeds',
+    country: 'Cameroon',
+    category: FoodCategory.fat,
+    caloriesPer100g: 557,
+    proteinGPer100g: 28,
+    carbsGPer100g: 15,
+    fatGPer100g: 47,
+    fiberGPer100g: 4.0,
+    defaultPortionLabel: '2 tbsp (30g)',
+    defaultPortionGrams: 30,
+    tags: ['traditional'],
+  ),
 ];

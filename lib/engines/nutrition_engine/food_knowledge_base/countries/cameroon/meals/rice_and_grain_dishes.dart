@@ -1,6 +1,7 @@
 import 'package:gymgenius/domain/enums/budget_level.dart';
 import 'package:gymgenius/domain/enums/meal_objective.dart';
 import 'package:gymgenius/domain/value_objects/macro_targets.dart';
+
 import '../../../models/meal_template.dart';
 
 const List<MealTemplate> cameroonRiceAndGrainDishes = [
@@ -8,17 +9,34 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
     id: 'cm_meal_rice_chicken',
     name: 'Rice and grilled chicken with vegetables',
     objective: MealObjective.highProtein,
-    ingredientIds: ['cm_rice', 'cm_chicken', 'cm_tomato', 'cm_cabbage'],
-    ingredientNames: ['White rice', 'Grilled chicken', 'Tomato', 'Cabbage'],
+    ingredientIds: [
+      'cm_rice',
+      'cm_chicken',
+      'cm_carrot',
+      'cm_cabbage',
+      'cm_tomato',
+    ],
+    ingredientNames: [
+      'White rice',
+      'Grilled chicken',
+      'Carrot',
+      'Cabbage',
+      'Tomato',
+    ],
     baseMacros: MacroTargets(
       calories: 620,
-      proteinG: 45,
-      carbsG: 60,
-      fatG: 12,
+      proteinG: 42,
+      carbsG: 72,
+      fatG: 14,
     ),
     minBudget: BudgetLevel.medium,
-    tags: ['lunch', 'dinner'],
+    tags: [
+      'lunch',
+      'dinner',
+      'high_protein',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_jollof_rice',
     name: 'Jollof Rice',
@@ -27,24 +45,31 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
       'cm_rice',
       'cm_tomato',
       'cm_onion',
-      'cm_hot_pepper',
       'cm_palm_oil',
+      'cm_chicken',
     ],
     ingredientNames: [
-      'Rice',
+      'White rice',
       'Tomato',
       'Onion',
-      'Hot pepper',
       'Palm oil',
+      'Chicken',
     ],
     baseMacros: MacroTargets(
-      calories: 450,
-      proteinG: 9,
-      carbsG: 80,
-      fatG: 10,
+      calories: 650,
+      proteinG: 30,
+      carbsG: 78,
+      fatG: 22,
     ),
-    tags: ['lunch', 'dinner', 'staple', 'special'],
+    minBudget: BudgetLevel.medium,
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+      'special',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_bifaga',
     name: 'Stir-Fried Rice with Bounga (Smoked Fish)',
@@ -58,7 +83,7 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
       'cm_palm_oil',
     ],
     ingredientNames: [
-      'Rice',
+      'Stir-fried rice',
       'Smoked fish (Bounga)',
       'Morue',
       'Onion',
@@ -73,8 +98,14 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['lunch', 'dinner', 'traditional'],
+    tags: [
+      'lunch',
+      'dinner',
+      'traditional',
+      'fish',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_rice_tomato_fish',
     name: 'Rice with tomato sauce and fish',
@@ -86,17 +117,29 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
       'cm_onion',
       'cm_palm_oil',
     ],
-    ingredientNames: ['Rice', 'Fresh fish', 'Tomato', 'Onion', 'Palm oil'],
+    ingredientNames: [
+      'White rice',
+      'Fresh fish',
+      'Tomato',
+      'Onion',
+      'Palm oil',
+    ],
     baseMacros: MacroTargets(
-      calories: 520,
+      calories: 560,
       proteinG: 32,
-      carbsG: 55,
+      carbsG: 68,
       fatG: 16,
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['lunch', 'dinner', 'staple'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+      'fish',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_rice_peanut_sauce',
     name: 'White rice with peanut sauce',
@@ -104,21 +147,32 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
     ingredientIds: [
       'cm_rice',
       'cm_peanut_paste',
-      'cm_tomato',
       'cm_onion',
-      'cm_chicken',
+      'cm_tomato',
+      'cm_hot_pepper',
     ],
-    ingredientNames: ['Rice', 'Peanut paste', 'Tomato', 'Onion', 'Chicken'],
+    ingredientNames: [
+      'White rice',
+      'Peanut paste',
+      'Onion',
+      'Tomato',
+      'Hot pepper',
+    ],
     baseMacros: MacroTargets(
-      calories: 650,
-      proteinG: 30,
-      carbsG: 55,
-      fatG: 32,
+      calories: 610,
+      proteinG: 18,
+      carbsG: 75,
+      fatG: 25,
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['peanut'],
-    tags: ['lunch', 'dinner', 'traditional'],
+    tags: [
+      'lunch',
+      'dinner',
+      'traditional',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_corn_chaff',
     name: 'Corn Chaff (maize and beans)',
@@ -128,23 +182,30 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
       'cm_beans',
       'cm_palm_oil',
       'cm_onion',
-      'cm_hot_pepper',
+      'cm_tomato',
     ],
     ingredientNames: [
-      'Boiled corn',
+      'Maize',
       'Beans',
       'Palm oil',
       'Onion',
-      'Hot pepper',
+      'Tomato',
     ],
     baseMacros: MacroTargets(
-      calories: 520,
-      proteinG: 20,
-      carbsG: 65,
-      fatG: 18,
+      calories: 560,
+      proteinG: 19,
+      carbsG: 82,
+      fatG: 17,
     ),
-    tags: ['street_food', 'lunch', 'dinner', 'staple'],
+    minBudget: BudgetLevel.low,
+    tags: [
+      'street_food',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_pasta_tomato_sauce',
     name: 'Pasta with tomato sauce',
@@ -153,19 +214,28 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
       'cm_macaroni',
       'cm_tomato',
       'cm_onion',
-      'cm_palm_oil',
+      'cm_carrot',
     ],
-    ingredientNames: ['Macaroni', 'Tomato', 'Onion', 'Palm oil'],
+    ingredientNames: [
+      'Macaroni',
+      'Tomato',
+      'Onion',
+      'Carrot',
+    ],
     baseMacros: MacroTargets(
-      calories: 450,
-      proteinG: 12,
-      carbsG: 78,
-      fatG: 10,
+      calories: 390,
+      proteinG: 13,
+      carbsG: 65,
+      fatG: 8,
     ),
-    tags: ['lunch', 'dinner', 'vegetarian', 'light'],
+    minBudget: BudgetLevel.low,
+    tags: [
+      'lunch',
+      'dinner',
+      'vegetarian',
+      'light',
+    ],
   ),
-
-  // Additional Cameroon rice and grain meals
 
   MealTemplate(
     id: 'cm_meal_sardines_rice',
@@ -174,20 +244,20 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
     ingredientIds: [
       'cm_rice',
       'cm_sardines',
-      'cm_tomato',
       'cm_onion',
+      'cm_tomato',
     ],
     ingredientNames: [
-      'Rice',
+      'White rice',
       'Sardines',
-      'Tomato',
       'Onion',
+      'Tomato',
     ],
     baseMacros: MacroTargets(
-      calories: 520,
-      proteinG: 30,
-      carbsG: 65,
-      fatG: 14,
+      calories: 540,
+      proteinG: 31,
+      carbsG: 61,
+      fatG: 18,
     ),
     minBudget: BudgetLevel.low,
     allergens: ['fish'],
@@ -199,6 +269,7 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
       'budget',
     ],
   ),
+
   MealTemplate(
     id: 'cm_meal_beef_rice',
     name: 'Rice with beef',
@@ -206,22 +277,63 @@ const List<MealTemplate> cameroonRiceAndGrainDishes = [
     ingredientIds: [
       'cm_rice',
       'cm_beef',
-      'cm_tomato',
       'cm_onion',
+      'cm_tomato',
     ],
     ingredientNames: [
-      'Rice',
+      'White rice',
       'Beef',
-      'Tomato',
       'Onion',
+      'Tomato',
     ],
     baseMacros: MacroTargets(
-      calories: 590,
+      calories: 610,
       proteinG: 34,
-      carbsG: 65,
-      fatG: 18,
+      carbsG: 62,
+      fatG: 21,
     ),
     minBudget: BudgetLevel.medium,
-    tags: ['lunch', 'dinner', 'staple'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+    ],
+  ),
+
+  // ---------------------------------------------------------------------------
+  // Additional Cameroon grain meal
+  // ---------------------------------------------------------------------------
+
+  MealTemplate(
+    id: 'cm_meal_folere_rice',
+    name: 'Foléré sauce with rice',
+    objective: MealObjective.light,
+    ingredientIds: [
+      'cm_folere',
+      'cm_rice',
+      'cm_onion',
+      'cm_tomato',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Foléré / roselle leaves',
+      'White rice',
+      'Onion',
+      'Tomato',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 420,
+      proteinG: 10,
+      carbsG: 67,
+      fatG: 12,
+    ),
+    minBudget: BudgetLevel.low,
+    tags: [
+      'lunch',
+      'dinner',
+      'traditional',
+      'vegetable',
+    ],
   ),
 ];

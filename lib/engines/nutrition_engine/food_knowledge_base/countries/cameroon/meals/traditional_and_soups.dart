@@ -1,6 +1,7 @@
 import 'package:gymgenius/domain/enums/budget_level.dart';
 import 'package:gymgenius/domain/enums/meal_objective.dart';
 import 'package:gymgenius/domain/value_objects/macro_targets.dart';
+
 import '../../../models/meal_template.dart';
 
 const List<MealTemplate> cameroonTraditionalAndSoups = [
@@ -14,7 +15,12 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       'cm_beef',
       'cm_plantain_boiled',
     ],
-    ingredientNames: ['Ndolé leaves', 'Groundnuts', 'Beef', 'Plantain'],
+    ingredientNames: [
+      'Ndolé leaves',
+      'Groundnuts',
+      'Beef',
+      'Plantain',
+    ],
     baseMacros: MacroTargets(
       calories: 700,
       proteinG: 35,
@@ -25,6 +31,7 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     allergens: ['peanut'],
     tags: ['traditional', 'dinner'],
   ),
+
   MealTemplate(
     id: 'cm_meal_ndole_rice',
     name: 'Ndolé with rice',
@@ -35,7 +42,12 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       'cm_beef',
       'cm_rice',
     ],
-    ingredientNames: ['Ndolé leaves', 'Groundnuts', 'Beef', 'White rice'],
+    ingredientNames: [
+      'Ndolé leaves',
+      'Groundnuts',
+      'Beef',
+      'White rice',
+    ],
     baseMacros: MacroTargets(
       calories: 680,
       proteinG: 35,
@@ -46,6 +58,7 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     allergens: ['peanut'],
     tags: ['traditional', 'dinner', 'lunch'],
   ),
+
   MealTemplate(
     id: 'cm_meal_ndole_miondo',
     name: 'Ndolé with Miondo',
@@ -56,7 +69,12 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       'cm_beef',
       'cm_cassava_bobolo',
     ],
-    ingredientNames: ['Ndolé leaves', 'Groundnuts', 'Beef', 'Miondo'],
+    ingredientNames: [
+      'Ndolé leaves',
+      'Groundnuts',
+      'Beef',
+      'Miondo',
+    ],
     baseMacros: MacroTargets(
       calories: 690,
       proteinG: 34,
@@ -67,6 +85,7 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     allergens: ['peanut'],
     tags: ['traditional', 'dinner'],
   ),
+
   MealTemplate(
     id: 'cm_meal_eru_fufu',
     name: 'Water fufu and Eru',
@@ -77,7 +96,12 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       'cm_smoked_fish',
       'cm_beef',
     ],
-    ingredientNames: ['Water fufu', 'Eru', 'Smoked fish', 'Beef'],
+    ingredientNames: [
+      'Water fufu',
+      'Eru',
+      'Smoked fish',
+      'Beef',
+    ],
     baseMacros: MacroTargets(
       calories: 750,
       proteinG: 40,
@@ -88,6 +112,7 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     allergens: ['fish'],
     tags: ['traditional', 'dinner'],
   ),
+
   MealTemplate(
     id: 'cm_meal_fish_sweet_potato',
     name: 'Fish with sweet potatoes',
@@ -97,7 +122,11 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       'cm_sweet_potato',
       'cm_spinach',
     ],
-    ingredientNames: ['Fresh fish', 'Sweet potato', 'Spinach'],
+    ingredientNames: [
+      'Fresh fish',
+      'Sweet potato',
+      'Spinach',
+    ],
     baseMacros: MacroTargets(
       calories: 480,
       proteinG: 40,
@@ -107,6 +136,7 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     allergens: ['fish'],
     tags: ['lunch', 'dinner', 'recovery'],
   ),
+
   MealTemplate(
     id: 'cm_meal_sardines_potato',
     name: 'Sardines with Irish potatoes',
@@ -116,7 +146,11 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       'cm_irish_potato',
       'cm_onion',
     ],
-    ingredientNames: ['Sardines', 'Irish potato', 'Onion'],
+    ingredientNames: [
+      'Sardines',
+      'Irish potato',
+      'Onion',
+    ],
     baseMacros: MacroTargets(
       calories: 500,
       proteinG: 30,
@@ -126,17 +160,33 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     allergens: ['fish'],
     tags: ['lunch', 'dinner'],
   ),
+
+  // ---------------------------------------------------------------------------
+  // Taro / Achu and yellow soup
+  // ---------------------------------------------------------------------------
+
   MealTemplate(
     id: 'cm_meal_achu',
-    name: 'Achu (cocoyam yellow soup)',
+    name: 'Taro with Yellow Soup (Achu)',
     objective: MealObjective.highEnergy,
     ingredientIds: [
       'cm_cocoyam',
       'cm_beef',
+      'cm_beef_tripe',
+      'cm_beef_skin',
       'cm_fish',
       'cm_palm_oil',
+      'cm_hot_pepper',
     ],
-    ingredientNames: ['Cocoyam', 'Beef', 'Fish', 'Palm oil'],
+    ingredientNames: [
+      'Taro / cocoyam',
+      'Beef',
+      'Beef tripe',
+      'Beef skin / Canda',
+      'Fish',
+      'Palm oil',
+      'Hot pepper',
+    ],
     baseMacros: MacroTargets(
       calories: 720,
       proteinG: 38,
@@ -145,8 +195,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['traditional', 'dinner'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_veggie_soup',
     name: 'Vegetable soup with eggs',
@@ -157,7 +213,12 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       'cm_tomato',
       'cm_eggs',
     ],
-    ingredientNames: ['Spinach', 'Okra', 'Tomato', 'Eggs'],
+    ingredientNames: [
+      'Spinach',
+      'Okra',
+      'Tomato',
+      'Eggs',
+    ],
     baseMacros: MacroTargets(
       calories: 280,
       proteinG: 18,
@@ -167,6 +228,7 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     allergens: ['egg'],
     tags: ['light', 'dinner'],
   ),
+
   MealTemplate(
     id: 'cm_meal_poulet_dg',
     name: 'Poulet DG (DG Chicken with plantains)',
@@ -194,8 +256,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       fatG: 38,
     ),
     minBudget: BudgetLevel.medium,
-    tags: ['traditional', 'lunch', 'dinner', 'special'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'special',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_kondre_bobolo',
     name: 'Kondré (cow skin stew) with Bobolo',
@@ -221,8 +289,13 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       fatG: 30,
     ),
     minBudget: BudgetLevel.medium,
-    tags: ['traditional', 'dinner', 'lunch'],
+    tags: [
+      'traditional',
+      'dinner',
+      'lunch',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_smoked_fish_miondo',
     name: 'Smoked fish with Miondo',
@@ -245,8 +318,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.low,
     allergens: ['fish'],
-    tags: ['traditional', 'dinner', 'recovery'],
+    tags: [
+      'traditional',
+      'dinner',
+      'recovery',
+      'fish',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_sanga',
     name: 'Sanga (Maize porridge with beans)',
@@ -269,8 +348,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       carbsG: 78,
       fatG: 12,
     ),
-    tags: ['traditional', 'dinner', 'vegetarian', 'porridge'],
+    tags: [
+      'traditional',
+      'dinner',
+      'vegetarian',
+      'porridge',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_mbongo_tchobi',
     name: 'Mbongo Tchobi (Spicy black stew)',
@@ -297,8 +382,13 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['traditional', 'dinner', 'spicy'],
+    tags: [
+      'traditional',
+      'dinner',
+      'spicy',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_pepe_soup',
     name: 'Pèpè Soup (Spicy fish or meat soup)',
@@ -323,8 +413,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.low,
     allergens: ['fish'],
-    tags: ['soup', 'dinner', 'spicy', 'recovery'],
+    tags: [
+      'soup',
+      'dinner',
+      'spicy',
+      'recovery',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_kwem',
     name: 'Kwem (Cassava leaf purée)',
@@ -347,8 +443,13 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       carbsG: 30,
       fatG: 18,
     ),
-    tags: ['traditional', 'vegetarian', 'dinner'],
+    tags: [
+      'traditional',
+      'vegetarian',
+      'dinner',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_grilled_fish_plantain',
     name: 'Grilled fish with plantain',
@@ -372,8 +473,18 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       fatG: 14,
     ),
     allergens: ['fish'],
-    tags: ['street_food', 'dinner', 'recovery'],
+    tags: [
+      'street_food',
+      'dinner',
+      'recovery',
+      'fish',
+    ],
   ),
+
+  // ---------------------------------------------------------------------------
+  // White peanut sauce variations
+  // ---------------------------------------------------------------------------
+
   MealTemplate(
     id: 'cm_meal_white_peanut_sauce_fish_potato',
     name: 'White peanut sauce with fried fish & potatoes',
@@ -402,8 +513,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['peanut', 'fish'],
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_white_peanut_sauce_fish_plantain',
     name: 'White peanut sauce with fried fish & plantains',
@@ -432,8 +549,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['peanut', 'fish'],
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_white_peanut_sauce_fish_rice',
     name: 'White peanut sauce with fried fish & rice',
@@ -462,8 +585,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['peanut', 'fish'],
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_white_peanut_sauce_fish_bobolo',
     name: 'White peanut sauce with fried fish & Bobolo',
@@ -492,8 +621,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['peanut', 'fish'],
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_white_peanut_sauce_chicken_potato',
     name: 'White peanut sauce with grilled chicken & potatoes',
@@ -522,8 +657,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['peanut'],
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_white_peanut_sauce_fish_potato_spinach',
     name: 'White peanut sauce with fried fish, potatoes & spinach',
@@ -554,8 +695,18 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['peanut', 'fish'],
-    tags: ['traditional', 'lunch', 'dinner', 'vegetable'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'vegetable',
+    ],
   ),
+
+  // ---------------------------------------------------------------------------
+  // Okra sauce variations
+  // ---------------------------------------------------------------------------
+
   MealTemplate(
     id: 'cm_meal_okra_sauce_corn_couscous_fish',
     name: 'Okra sauce with corn couscous and fried fish',
@@ -586,8 +737,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_okra_sauce_corn_couscous_smoked_fish',
     name: 'Okra sauce with corn couscous and smoked fish',
@@ -618,8 +775,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_okra_sauce_corn_couscous_beef',
     name: 'Okra sauce with corn couscous and beef',
@@ -649,8 +812,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       fatG: 26,
     ),
     minBudget: BudgetLevel.medium,
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_okra_sauce_corn_couscous_chicken',
     name: 'Okra sauce with corn couscous and chicken',
@@ -680,8 +849,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       fatG: 20,
     ),
     minBudget: BudgetLevel.medium,
-    tags: ['traditional', 'lunch', 'dinner', 'staple'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_okra_sauce_corn_couscous_eggs',
     name: 'Okra sauce with corn couscous and boiled eggs',
@@ -712,10 +887,16 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.low,
     allergens: ['egg'],
-    tags: ['traditional', 'lunch', 'dinner', 'vegetarian'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+    ],
   ),
 
-  // Additional Cameroon traditional meals
+  // ---------------------------------------------------------------------------
+  // Existing additional meals
+  // ---------------------------------------------------------------------------
 
   MealTemplate(
     id: 'cm_meal_plantain_fish',
@@ -741,8 +922,14 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['lunch', 'dinner', 'staple', 'fish'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+      'fish',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_chicken_plantain',
     name: 'Chicken with plantain',
@@ -766,8 +953,13 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
       fatG: 15,
     ),
     minBudget: BudgetLevel.medium,
-    tags: ['lunch', 'dinner', 'staple'],
+    tags: [
+      'lunch',
+      'dinner',
+      'staple',
+    ],
   ),
+
   MealTemplate(
     id: 'cm_meal_smoked_fish_cassava',
     name: 'Smoked fish with cassava',
@@ -792,6 +984,636 @@ const List<MealTemplate> cameroonTraditionalAndSoups = [
     ),
     minBudget: BudgetLevel.medium,
     allergens: ['fish'],
-    tags: ['lunch', 'dinner', 'traditional', 'fish'],
+    tags: [
+      'lunch',
+      'dinner',
+      'traditional',
+      'fish',
+    ],
+  ),
+
+  // ---------------------------------------------------------------------------
+  // New Cameroon traditional meals
+  // ---------------------------------------------------------------------------
+
+  MealTemplate(
+    id: 'cm_meal_fufu_njama_kati_kati',
+    name: 'Fufu, Njama Njama and Kati-Kati',
+    objective: MealObjective.highProtein,
+    ingredientIds: [
+      'cm_corn_flour',
+      'cm_njama_njama',
+      'cm_chicken',
+      'cm_tomato',
+      'cm_onion',
+      'cm_hot_pepper',
+      'cm_palm_oil',
+    ],
+    ingredientNames: [
+      'Corn fufu',
+      'Njama Njama',
+      'Chicken (Kati-Kati)',
+      'Tomato',
+      'Onion',
+      'Hot pepper',
+      'Palm oil',
+    ],
+    baseMacros: MacroTargets(
+      calories: 650,
+      proteinG: 38,
+      carbsG: 68,
+      fatG: 22,
+    ),
+    minBudget: BudgetLevel.medium,
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'high_protein',
+      'spicy',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_kati_kati',
+    name: 'Kati-Kati Chicken',
+    objective: MealObjective.highProtein,
+    ingredientIds: [
+      'cm_chicken',
+      'cm_njama_njama',
+      'cm_onion',
+      'cm_tomato',
+      'cm_hot_pepper',
+      'cm_palm_oil',
+    ],
+    ingredientNames: [
+      'Chicken',
+      'Njama Njama',
+      'Onion',
+      'Tomato',
+      'Hot pepper',
+      'Palm oil',
+    ],
+    baseMacros: MacroTargets(
+      calories: 480,
+      proteinG: 43,
+      carbsG: 18,
+      fatG: 25,
+    ),
+    minBudget: BudgetLevel.medium,
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'high_protein',
+      'spicy',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_kwacoco_bible',
+    name: 'Kwacoco Bible',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_macabo',
+      'cm_cocoyam_leaves',
+      'cm_smoked_fish',
+      'cm_palm_oil',
+      'cm_onion',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Macabo',
+      'Cocoyam leaves',
+      'Smoked fish',
+      'Palm oil',
+      'Onion',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 610,
+      proteinG: 30,
+      carbsG: 62,
+      fatG: 24,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: ['fish'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_ekwang',
+    name: 'Ekwang',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_macabo',
+      'cm_cocoyam_leaves',
+      'cm_smoked_fish',
+      'cm_crayfish',
+      'cm_palm_oil',
+      'cm_onion',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Macabo',
+      'Cocoyam leaves',
+      'Smoked fish',
+      'Dried crayfish',
+      'Palm oil',
+      'Onion',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 670,
+      proteinG: 34,
+      carbsG: 58,
+      fatG: 29,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: [
+      'fish',
+      'shellfish',
+    ],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_born_house_planti',
+    name: 'Born House Planti',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_plantain_boiled',
+      'cm_smoked_fish',
+      'cm_palm_oil',
+      'cm_onion',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Plantain',
+      'Smoked fish',
+      'Palm oil',
+      'Onion',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 560,
+      proteinG: 30,
+      carbsG: 58,
+      fatG: 22,
+    ),
+    minBudget: BudgetLevel.low,
+    allergens: ['fish'],
+    tags: [
+      'traditional',
+      'staple',
+      'high_energy',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_mintoumba_smoked_fish',
+    name: 'Mintoumba with smoked fish',
+    objective: MealObjective.highProtein,
+    ingredientIds: [
+      'cm_cassava',
+      'cm_smoked_fish',
+      'cm_palm_oil',
+      'cm_onion',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Cassava',
+      'Smoked fish',
+      'Palm oil',
+      'Onion',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 590,
+      proteinG: 34,
+      carbsG: 61,
+      fatG: 22,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: ['fish'],
+    tags: [
+      'traditional',
+      'staple',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_boule_millet_beef',
+    name: 'Millet boule with beef',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_millet_flour',
+      'cm_beef',
+      'cm_onion',
+      'cm_tomato',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Millet flour',
+      'Beef',
+      'Onion',
+      'Tomato',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 620,
+      proteinG: 34,
+      carbsG: 78,
+      fatG: 18,
+    ),
+    minBudget: BudgetLevel.medium,
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_nkui_corn_couscous',
+    name: 'Nkui with corn couscous',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_corn_couscous',
+      'cm_okra',
+      'cm_smoked_fish',
+      'cm_palm_oil',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Corn couscous',
+      'Okra / Nkui',
+      'Smoked fish',
+      'Palm oil',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 590,
+      proteinG: 31,
+      carbsG: 67,
+      fatG: 21,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: ['fish'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_ndomba_chicken_plantain',
+    name: "N'Domba chicken with plantain",
+    objective: MealObjective.highProtein,
+    ingredientIds: [
+      'cm_chicken',
+      'cm_plantain_boiled',
+      'cm_onion',
+      'cm_tomato',
+      'cm_hot_pepper',
+      'cm_ginger',
+    ],
+    ingredientNames: [
+      'Chicken',
+      'Boiled plantain',
+      'Onion',
+      'Tomato',
+      'Hot pepper',
+      'Ginger',
+    ],
+    baseMacros: MacroTargets(
+      calories: 570,
+      proteinG: 40,
+      carbsG: 57,
+      fatG: 17,
+    ),
+    minBudget: BudgetLevel.medium,
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'high_protein',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_tapsi_banana_smoked_fish',
+    name: 'Tapsi Banana with smoked fish',
+    objective: MealObjective.highProtein,
+    ingredientIds: [
+      'cm_plantain_boiled',
+      'cm_smoked_fish',
+      'cm_palm_oil',
+      'cm_onion',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Plantain',
+      'Smoked fish',
+      'Palm oil',
+      'Onion',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 590,
+      proteinG: 34,
+      carbsG: 61,
+      fatG: 23,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: ['fish'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_teupsi_macabo_sardines',
+    name: 'Teupsi Macabo with sardines',
+    objective: MealObjective.highProtein,
+    ingredientIds: [
+      'cm_macabo',
+      'cm_sardines',
+      'cm_onion',
+      'cm_tomato',
+      'cm_hot_pepper',
+      'cm_palm_oil',
+    ],
+    ingredientNames: [
+      'Macabo',
+      'Sardines',
+      'Onion',
+      'Tomato',
+      'Hot pepper',
+      'Palm oil',
+    ],
+    baseMacros: MacroTargets(
+      calories: 570,
+      proteinG: 32,
+      carbsG: 58,
+      fatG: 22,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: ['fish'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_kouakoukou_peanut_sauce',
+    name: 'Kouakoukou with white peanut sauce',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_macabo',
+      'cm_peanut_paste',
+      'cm_smoked_fish',
+      'cm_onion',
+      'cm_hot_pepper',
+      'cm_palm_oil',
+    ],
+    ingredientNames: [
+      'Macabo',
+      'Peanut paste',
+      'Smoked fish',
+      'Onion',
+      'Hot pepper',
+      'Palm oil',
+    ],
+    baseMacros: MacroTargets(
+      calories: 690,
+      proteinG: 31,
+      carbsG: 63,
+      fatG: 34,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: [
+      'peanut',
+      'fish',
+    ],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_plantain_malaxee',
+    name: 'Banane Malaxée',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_plantain_boiled',
+      'cm_smoked_fish',
+      'cm_palm_oil',
+      'cm_onion',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Plantain',
+      'Smoked fish',
+      'Palm oil',
+      'Onion',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 600,
+      proteinG: 32,
+      carbsG: 65,
+      fatG: 22,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: ['fish'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_pounded_plantain_smoked_fish',
+    name: 'Mashed plantain with smoked fish',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_plantain_boiled',
+      'cm_smoked_fish',
+      'cm_palm_oil',
+      'cm_onion',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Mashed plantain',
+      'Smoked fish',
+      'Palm oil',
+      'Onion',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 580,
+      proteinG: 31,
+      carbsG: 63,
+      fatG: 21,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: ['fish'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'fish',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_pounded_plantain_peanut',
+    name: 'Pounded plantain with peanut sauce',
+    objective: MealObjective.highEnergy,
+    ingredientIds: [
+      'cm_plantain_boiled',
+      'cm_peanut_paste',
+      'cm_onion',
+      'cm_hot_pepper',
+    ],
+    ingredientNames: [
+      'Pounded plantain',
+      'Peanut paste',
+      'Onion',
+      'Hot pepper',
+    ],
+    baseMacros: MacroTargets(
+      calories: 620,
+      proteinG: 17,
+      carbsG: 67,
+      fatG: 30,
+    ),
+    minBudget: BudgetLevel.low,
+    allergens: ['peanut'],
+    tags: [
+      'traditional',
+      'lunch',
+      'dinner',
+      'staple',
+    ],
+  ),
+  MealTemplate(
+    id: 'cm_meal_sauteed_potatoes_fish',
+    name: 'Fried Fish and Sautéed Potatoes',
+    objective: MealObjective.highProtein,
+    ingredientIds: [
+      'cm_irish_potato',
+      'cm_fish',
+      'cm_onion',
+      'cm_tomato',
+      'cm_garlic',
+      'cm_ginger',
+      'cm_parsley',
+      'cm_spring_onion',
+      'cm_bell_pepper',
+      'cm_peanut_oil',
+    ],
+    ingredientNames: [
+      'Irish potatoes',
+      'Fresh fish',
+      'Onion',
+      'Tomato',
+      'Garlic',
+      'Ginger',
+      'Parsley',
+      'Spring onion',
+      'Bell pepper',
+      'Cooking oil',
+    ],
+    baseMacros: MacroTargets(
+      calories: 560,
+      proteinG: 35,
+      carbsG: 55,
+      fatG: 20,
+    ),
+    minBudget: BudgetLevel.low,
+    allergens: ['fish'],
+    tags: [
+      'lunch',
+      'dinner',
+      'high_protein',
+      'fish',
+      'budget',
+    ],
+  ),
+
+  MealTemplate(
+    id: 'cm_meal_sauteed_potatoes_beef',
+    name: 'Beef and Sautéed Potatoes',
+    objective: MealObjective.highProtein,
+    ingredientIds: [
+      'cm_irish_potato',
+      'cm_beef',
+      'cm_onion',
+      'cm_tomato',
+      'cm_garlic',
+      'cm_ginger',
+      'cm_parsley',
+      'cm_spring_onion',
+      'cm_bell_pepper',
+      'cm_peanut_oil',
+    ],
+    ingredientNames: [
+      'Irish potatoes',
+      'Beef',
+      'Onion',
+      'Tomato',
+      'Garlic',
+      'Ginger',
+      'Parsley',
+      'Spring onion',
+      'Bell pepper',
+      'Cooking oil',
+    ],
+    baseMacros: MacroTargets(
+      calories: 560,
+      proteinG: 32,
+      carbsG: 48,
+      fatG: 22,
+    ),
+    minBudget: BudgetLevel.medium,
+    allergens: [],
+    tags: [
+      'lunch',
+      'dinner',
+      'high_protein',
+      'beef',
+      'budget',
+    ],
   ),
 ];
