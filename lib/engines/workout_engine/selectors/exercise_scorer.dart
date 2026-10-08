@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:gymgenius/engines/workout_engine/models/focus_plan.dart';
 import 'package:gymgenius/engines/workout_engine/models/muscle_split.dart';
+import 'package:gymgenius/engines/workout_engine/selectors/movement_family.dart';
 import 'package:gymgenius/engines/workout_engine/selectors/selection_candidate.dart';
 import 'package:gymgenius/engines/workout_engine/selectors/selection_state.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart';
@@ -32,7 +33,27 @@ class ExerciseScorer {
 
   static const int _secondaryMuscleBonus = 5;
 
+  /// Bonus applied when the exercise's FIRST target muscle is one of the
+  /// split's target muscles — meaning the exercise was primarily designed
+  /// for this split (e.g. "Chest Dips" has `chest` as its first target
+  /// muscle, so it gets this bonus on Chest day).
+  static const int _primaryTargetMatchBonus = 40;
+
+  /// Penalty applied when the exercise's target muscles do NOT include any
+  /// of the split's muscles, but its secondary muscles DO. Discourages
+  /// exercises like "Close-Grip Bench Press" (primary: triceps) on Chest
+  /// day where chest only appears as a secondary muscle.
+  static const int _secondaryOnlyForSplitPenalty = -150;
+
+  /// Coarse penalty: applies when two exercises share the same broad
+  /// `MovementPattern` (push / pull / squat / hinge / …).
   static const int _repeatedPatternPenalty = -30;
+
+  /// Fine-grained penalty: applies when two exercises share the same
+  /// name-derived movement family. Note that `ExerciseSelector` now
+  /// also uses a hard filter (two-pass selection) so this penalty is
+  /// mostly a tie-breaker.
+  static const int _repeatedFamilyPenalty = -400;
 
   static const int _previousProgramPenalty = -30;
 
@@ -48,6 +69,35 @@ class ExerciseScorer {
     required Set<String> previousNames,
   }) {
     var total = 0;
+
+    // -----------------------------------------------------------------------
+    // 0. Primary vs secondary muscle targeting for the split.
+    //
+    // This is the key rule that prioritizes exercises whose PRIMARY
+    // target muscles match the split, over exercises that only touch
+    // the split's muscles as secondary movers.
+    // -----------------------------------------------------------------------
+
+    final hasSplitMuscleAsPrimary = entry.targetMuscles.any(split.targets);
+
+    final hasSplitMuscleAsSecondaryOnly =
+        !hasSplitMuscleAsPrimary && entry.secondaryMuscles.any(split.targets);
+
+    if (hasSplitMuscleAsSecondaryOnly) {
+      // The split's muscle is only a secondary mover here.
+      // Heavily discourage but don't exclude outright — this keeps
+      // the selector from being stuck when the primary pool is empty.
+      total += _secondaryOnlyForSplitPenalty;
+    }
+
+    // Bonus if the exercise's FIRST target muscle is what this split
+    // was designed for. Example: on Chest day, "Chest Dips"
+    // (targetMuscles: [chest]) gets this bonus; "Close-Grip Bench
+    // Press" (targetMuscles: [triceps, chest]) does not.
+    if (entry.targetMuscles.isNotEmpty &&
+        split.targets(entry.targetMuscles.first)) {
+      total += _primaryTargetMatchBonus;
+    }
 
     // -----------------------------------------------------------------------
     // 1. Primary focus quotas
@@ -92,9 +142,6 @@ class ExerciseScorer {
 
     // -----------------------------------------------------------------------
     // 3. Reward muscles whose current coverage is still low.
-    //
-    // This prevents the greedy selector from repeatedly choosing the same
-    // muscle once its quota is already satisfied.
     // -----------------------------------------------------------------------
 
     for (final muscle in entry.targetMuscles) {
@@ -127,7 +174,7 @@ class ExerciseScorer {
     total += entry.secondaryMuscles.length * _secondaryMuscleBonus;
 
     // -----------------------------------------------------------------------
-    // 6. Movement diversity
+    // 6. Coarse movement diversity (enum-based)
     // -----------------------------------------------------------------------
 
     if (state.containsPattern(entry.movementPattern.name)) {
@@ -135,7 +182,16 @@ class ExerciseScorer {
     }
 
     // -----------------------------------------------------------------------
-    // 7. Previous program variety
+    // 7. Fine-grained movement diversity (name-derived family)
+    // -----------------------------------------------------------------------
+
+    final family = movementFamilyOf(entry.name);
+    if (state.containsFamily(family)) {
+      total += _repeatedFamilyPenalty;
+    }
+
+    // -----------------------------------------------------------------------
+    // 8. Previous program variety
     // -----------------------------------------------------------------------
 
     if (previousNames.contains(entry.name)) {
@@ -216,17 +272,19 @@ class ExerciseScorer {
     required SelectionState state,
     required FocusPlan focusPlan,
   }) {
-    final candidateNeeds = _quotaNeed(
-      candidate,
-      state,
-      focusPlan,
-    );
+    // Priority 0: prefer the exercise whose FIRST target muscle
+    // belongs to the split.
+    final candidateFirstIsSplit = candidate.targetMuscles.isNotEmpty &&
+        split.targets(candidate.targetMuscles.first);
+    final currentFirstIsSplit = current.targetMuscles.isNotEmpty &&
+        split.targets(current.targetMuscles.first);
 
-    final currentNeeds = _quotaNeed(
-      current,
-      state,
-      focusPlan,
-    );
+    if (candidateFirstIsSplit != currentFirstIsSplit) {
+      return candidateFirstIsSplit;
+    }
+
+    final candidateNeeds = _quotaNeed(candidate, state, focusPlan);
+    final currentNeeds = _quotaNeed(current, state, focusPlan);
 
     if (candidateNeeds != currentNeeds) {
       return candidateNeeds > currentNeeds;
@@ -240,6 +298,17 @@ class ExerciseScorer {
 
     if (candidateSplitCoverage != currentSplitCoverage) {
       return candidateSplitCoverage > currentSplitCoverage;
+    }
+
+    // Prefer candidates whose family has NOT been used yet.
+    final candidateFamily = movementFamilyOf(candidate.name);
+    final currentFamily = movementFamilyOf(current.name);
+
+    final candidateFamilyUsed = state.containsFamily(candidateFamily);
+    final currentFamilyUsed = state.containsFamily(currentFamily);
+
+    if (candidateFamilyUsed != currentFamilyUsed) {
+      return !candidateFamilyUsed;
     }
 
     final candidateNewPattern =

@@ -95,6 +95,15 @@ class _HomeTabScreenState extends State<HomeTabScreen>
     // Only try to open the check-in once Home has finished loading.
     if (viewModel.state != HomeState.loaded) return;
 
+    // Do not trigger the daily check-in if no program exists.
+    //
+    // A morning check-in is only meaningful when there is an active
+    // training program to evaluate. Without a program, the flow would
+    // loop indefinitely: _applyCheckIn() returns early (because it
+    // requires a program), so the check-in is never persisted, and the
+    // screen would reopen on every refresh.
+    if (viewModel.currentProgram == null) return;
+
     _checkInPromptInProgress = true;
     try {
       await viewModel.triggerCheckInIfNeeded(context);

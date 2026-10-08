@@ -10,6 +10,7 @@ import 'package:gymgenius/engines/workout_engine/optimizers/program_optimizer.da
 import 'package:gymgenius/engines/workout_engine/planner/split_planner.dart';
 import 'package:gymgenius/engines/workout_engine/planner/workout_frequency_planner.dart';
 import 'package:gymgenius/engines/workout_engine/program_generator.dart';
+import 'package:gymgenius/engines/workout_engine/shared/exercises/catalog/exercise_catalog.dart';
 import 'package:gymgenius/engines/workout_engine/shared/profile_coherence.dart';
 import 'package:gymgenius/engines/workout_engine/validators/program_validator.dart';
 
@@ -45,6 +46,11 @@ class GenerationService {
     TrainingProgram? previousProgram,
     Map<String, dynamic>? options,
   }) async {
+    // lazy-load the exercise catalog before generation.
+    // The catalog is no longer loaded at app startup — it is loaded
+    // on the first call that actually needs it.
+    await ExerciseCatalog.ensureLoaded();
+
     Log.debug(
       'GenerationService: Starting program generation',
       tag: _tag,

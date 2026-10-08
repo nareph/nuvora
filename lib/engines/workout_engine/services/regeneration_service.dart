@@ -13,6 +13,7 @@ import 'package:gymgenius/engines/workout_engine/models/workout_days_result.dart
 import 'package:gymgenius/engines/workout_engine/planner/split_planner.dart';
 import 'package:gymgenius/engines/workout_engine/planner/workout_frequency_planner.dart';
 import 'package:gymgenius/engines/workout_engine/services/generation_service.dart';
+import 'package:gymgenius/engines/workout_engine/shared/exercises/catalog/exercise_catalog.dart';
 import 'package:gymgenius/engines/workout_engine/shared/profile_coherence.dart';
 import 'package:gymgenius/engines/workout_engine/shared/workout_constants.dart';
 
@@ -67,6 +68,13 @@ class RegenerationService {
     required TrainingProgram previousProgram,
     required Map<String, dynamic> options,
   }) async {
+    // Lazy-load the exercise catalog before regeneration.
+    // The catalog is no longer loaded at app startup — it is loaded
+    // on the first call that actually needs it. Doing it here as well
+    // covers the "specificDay" and "singleExercise" branches which
+    // don't delegate to GenerationService.
+    await ExerciseCatalog.ensureLoaded();
+
     final type = options['type'] as String?;
 
     Log.debug(

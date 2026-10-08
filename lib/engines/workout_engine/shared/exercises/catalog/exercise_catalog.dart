@@ -1,77 +1,83 @@
+import 'package:gymgenius/engines/workout_engine/data/exercise_dataset_loader.dart';
+import 'package:gymgenius/engines/workout_engine/data/exercise_normalizer.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart';
-
-import 'definitions/arms_exercises.dart';
-import 'definitions/back_exercises.dart';
-import 'definitions/chest_exercises.dart';
-import 'definitions/core_exercises.dart';
-import 'definitions/legs_exercises.dart';
-import 'definitions/shoulders_exercises.dart';
 
 /// Canonical exercise catalog.
 ///
-/// This is the single source of truth for exercise definitions.
+/// **Lazy-loaded.** The catalog is loaded on first use via
+/// [ensureLoaded] — NOT at app startup.
 ///
-/// Each exercise exists only once, identified by its stable [ExercisePoolEntry.id].
-/// Applicability to different splits is stored in [ExercisePoolEntry.compatibleSplits].
+/// Callers must `await ExerciseCatalog.ensureLoaded()` before calling
+/// [getAll], [findById], etc.
+///
+/// Subsequent calls to [ensureLoaded] are no-ops.
 class ExerciseCatalog {
   ExerciseCatalog._();
 
   static List<ExercisePoolEntry>? _cachedExercises;
   static Map<String, ExercisePoolEntry>? _cachedById;
+  static Future<void>? _initialization;
 
-  /// Returns all canonical exercises.
+  /// Loads the catalog if not already loaded.
   ///
-  /// The catalog is deduplicated by stable exercise ID.
-  /// The result is cached after the first call.
-  static List<ExercisePoolEntry> getAll() {
-    final cached = _cachedExercises;
-    if (cached != null) {
-      return cached;
-    }
-
-    final all = <String, ExercisePoolEntry>{};
-
-    void addAll(List<ExercisePoolEntry> entries) {
-      for (final entry in entries) {
-        all[entry.id] = entry;
-      }
-    }
-
-    addAll(chestDefinitions);
-    addAll(backDefinitions);
-    addAll(shouldersDefinitions);
-    addAll(armsDefinitions);
-    addAll(legsDefinitions);
-    addAll(coreDefinitions);
-
-    final result = List<ExercisePoolEntry>.unmodifiable(
-      all.values,
-    );
-
-    _cachedExercises = result;
-    _cachedById = Map<String, ExercisePoolEntry>.unmodifiable(
-      all,
-    );
-
-    return result;
+  /// Safe to call multiple times and from multiple places — only the
+  /// first call performs the actual work.
+  static Future<void> ensureLoaded() async {
+    _initialization ??= _doInitialize();
+    return _initialization!;
   }
 
-  /// Finds a canonical exercise by its stable ID.
-  static ExercisePoolEntry? findById(String id) {
-    if (_cachedById == null) {
-      getAll();
+  static Future<void> _doInitialize() async {
+    if (_cachedExercises != null) return;
+
+    await ExerciseDatasetLoader.preload();
+
+    final dataset = ExerciseDatasetLoader.datasetSync;
+    final taxonomy = ExerciseDatasetLoader.taxonomySync;
+
+    final byId = <String, ExercisePoolEntry>{};
+    final list = <ExercisePoolEntry>[];
+
+    for (final record in dataset) {
+      final meta = taxonomy[record.id];
+      if (meta == null) continue;
+
+      final entry = ExerciseNormalizer.normalize(
+        dataset: record,
+        taxonomy: meta,
+      );
+
+      byId[entry.id] = entry;
+      list.add(entry);
     }
 
+    _cachedExercises = List.unmodifiable(list);
+    _cachedById = Map.unmodifiable(byId);
+  }
+
+  /// True once [ensureLoaded] has completed.
+  static bool get isLoaded => _cachedExercises != null;
+
+  /// Throws [StateError] if [ensureLoaded] was not awaited first.
+  static List<ExercisePoolEntry> getAll() {
+    final cached = _cachedExercises;
+    if (cached == null) {
+      throw StateError(
+        'ExerciseCatalog.ensureLoaded() must be awaited before use.',
+      );
+    }
+    return cached;
+  }
+
+  static ExercisePoolEntry? findById(String id) {
     return _cachedById?[id];
   }
 
-  /// Finds all canonical exercises matching [predicate].
   static List<ExercisePoolEntry> where(
     bool Function(ExercisePoolEntry entry) predicate,
   ) {
     return getAll().where(predicate).toList();
   }
 
-  /// Returns the number of canonical exercises.
   static int get length => getAll().length;
 }

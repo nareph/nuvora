@@ -2,14 +2,12 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart';
+import 'package:gymgenius/engines/workout_engine/shared/exercises/catalog/exercise_catalog.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercises/exercise_pool.dart';
 import 'package:gymgenius/presentation/blocs/exercise_library/exercise_library_event.dart';
 import 'package:gymgenius/presentation/blocs/exercise_library/exercise_library_state.dart';
 
 /// BLoC that manages the state of the Exercise Library.
-///
-/// It loads exercises from the canonical [ExercisePool] and applies
-/// filters for search, muscle group, equipment, and category.
 class ExerciseLibraryBloc
     extends Bloc<ExerciseLibraryEvent, ExerciseLibraryState> {
   ExerciseLibraryBloc() : super(const ExerciseLibraryState()) {
@@ -28,7 +26,9 @@ class ExerciseLibraryBloc
     emit(state.copyWith(isLoading: true));
 
     try {
-      // Load all exercises from the canonical ExercisePool.
+      // ✅ Lazy-load the catalog (was previously done at app startup).
+      await ExerciseCatalog.ensureLoaded();
+
       final allExercises = ExercisePool.getAllExercises();
       emit(state.copyWith(
         allExercises: allExercises,
@@ -94,37 +94,33 @@ class ExerciseLibraryBloc
     final state = this.state;
     List<ExercisePoolEntry> filtered = List.from(state.allExercises);
 
-    // Apply search query
     if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
       final query = state.searchQuery!.toLowerCase();
       filtered = filtered.where((exercise) {
         return exercise.name.toLowerCase().contains(query) ||
-            exercise.id.toLowerCase().contains(query);
+            exercise.id.toLowerCase().contains(query) ||
+            exercise.primaryMusclesDisplay.toLowerCase().contains(query);
       }).toList();
     }
 
-    // Apply muscle filter
     if (state.selectedMuscle != null) {
       filtered = filtered.where((exercise) {
         return exercise.targetMuscles.contains(state.selectedMuscle);
       }).toList();
     }
 
-    // Apply equipment filter
     if (state.selectedEquipment != null) {
       filtered = filtered.where((exercise) {
         return exercise.equipmentType == state.selectedEquipment;
       }).toList();
     }
 
-    // Apply category filter
     if (state.selectedCategory != null) {
       filtered = filtered.where((exercise) {
         return exercise.category == state.selectedCategory;
       }).toList();
     }
 
-    // Sort by name
     filtered.sort((a, b) => a.name.compareTo(b.name));
 
     emit(state.copyWith(filteredExercises: filtered));

@@ -5,6 +5,7 @@ import 'package:gymgenius/domain/entities/exercise.dart';
 import 'package:gymgenius/domain/entities/health_profile.dart';
 import 'package:gymgenius/domain/entities/training_program.dart';
 import 'package:gymgenius/presentation/screens/daily_workout_detail_screen.dart';
+import 'package:gymgenius/presentation/widgets/exercise/exercise_media.dart';
 
 class ProgramCard extends StatelessWidget {
   final String dayKey;
@@ -37,7 +38,7 @@ class ProgramCard extends StatelessWidget {
             initialExercises: exercises,
             programIdForLog: program.id,
             dayKeyForLog: dayKey.toLowerCase(),
-            healthProfile: healthProfile, // Pass HealthProfile
+            healthProfile: healthProfile,
           ),
         ),
       );
@@ -123,17 +124,32 @@ class ProgramCard extends StatelessWidget {
               const SizedBox(height: 12),
               if (!isRestDay) ...[
                 ...exercises.take(3).map((ex) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: Text(
-                        "• ${ex.name} (${ex.sets}x${ex.reps})",
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        overflow: TextOverflow.ellipsis,
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Thumbnail (image + optional GIF badge)
+                          ExerciseMediaThumbnail(
+                            exerciseId: ex.id,
+                            size: 40,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              "${ex.name} (${ex.sets}x${ex.reps})",
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ],
                       ),
                     )),
                 if (exercises.length > 3)
                   Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
+                    padding: const EdgeInsets.only(top: 4.0, left: 50),
                     child: Text(
                       "...and ${exercises.length - 3} more.",
                       style: textTheme.bodySmall?.copyWith(

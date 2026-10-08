@@ -11,6 +11,7 @@ import 'package:gymgenius/engines/workout_engine/models/focus_plan.dart';
 import 'package:gymgenius/engines/workout_engine/models/muscle_split.dart';
 import 'package:gymgenius/engines/workout_engine/selectors/exercise_scorer.dart';
 import 'package:gymgenius/engines/workout_engine/selectors/focus_quota_planner.dart';
+import 'package:gymgenius/engines/workout_engine/selectors/movement_family.dart';
 import 'package:gymgenius/engines/workout_engine/selectors/selection_candidate.dart';
 import 'package:gymgenius/engines/workout_engine/selectors/selection_state.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart';
@@ -18,19 +19,6 @@ import 'package:gymgenius/engines/workout_engine/shared/exercises/exercise_pool.
 import 'package:gymgenius/engines/workout_engine/shared/profile_coherence.dart';
 
 /// Selects exercises for one workout day.
-///
-/// The selector works exclusively with canonical [ExercisePoolEntry] objects
-/// coming from [ExercisePool].
-///
-/// Responsibilities:
-/// - respect split applicability
-/// - respect allowed equipment
-/// - respect avoided muscles
-/// - prioritize user focus areas
-/// - avoid duplicates within a workout
-/// - avoid duplicates across the same week when possible
-/// - use bodyweight as a fallback when the preferred equipment pool is too
-///   small
 class ExerciseSelector {
   ExerciseSelector({
     Random? random,
@@ -46,12 +34,6 @@ class ExerciseSelector {
   // Public API
   //===========================================================================
 
-  /// Selects up to [desiredCount] exercises for the given [split].
-  ///
-  /// [weeklyUsedExerciseIds] contains canonical exercise IDs already selected
-  /// on previous days of the same week.
-  ///
-  /// Weekly duplicates are avoided whenever another suitable candidate exists.
   List<ExercisePoolEntry> select({
     required MuscleSplit split,
     required HealthProfile profile,
@@ -66,9 +48,7 @@ class ExerciseSelector {
 
     final training = profile.training;
 
-    final previousNames = _previousExerciseNames(
-      previousProgram,
-    );
+    final previousNames = _previousExerciseNames(previousProgram);
 
     final resolvedExcludedMuscles = ProfileCoherence.resolveAvoidedMuscles(
       profileAvoided: training.avoidedMuscles,
@@ -128,7 +108,7 @@ class ExerciseSelector {
   }
 
   //===========================================================================
-  // Candidate selection
+  // Candidate selection — TWO PASSES
   //===========================================================================
 
   SelectionCandidate? _bestCandidate({
@@ -139,6 +119,42 @@ class ExerciseSelector {
     required Set<String> previousNames,
     required Map<MuscleGroup, int> splitCoverageQuotas,
   }) {
+    // PASS 1 — only candidates whose movement family has NOT been used yet.
+    final uniqueFamilyBest = _bestCandidateMatching(
+      pool: pool,
+      state: state,
+      split: split,
+      focusPlan: focusPlan,
+      previousNames: previousNames,
+      splitCoverageQuotas: splitCoverageQuotas,
+      requireUniqueFamily: true,
+    );
+
+    if (uniqueFamilyBest != null) {
+      return uniqueFamilyBest;
+    }
+
+    // PASS 2 — fallback: allow a repeated family.
+    return _bestCandidateMatching(
+      pool: pool,
+      state: state,
+      split: split,
+      focusPlan: focusPlan,
+      previousNames: previousNames,
+      splitCoverageQuotas: splitCoverageQuotas,
+      requireUniqueFamily: false,
+    );
+  }
+
+  SelectionCandidate? _bestCandidateMatching({
+    required List<ExercisePoolEntry> pool,
+    required SelectionState state,
+    required MuscleSplit split,
+    required FocusPlan focusPlan,
+    required Set<String> previousNames,
+    required Map<MuscleGroup, int> splitCoverageQuotas,
+    required bool requireUniqueFamily,
+  }) {
     SelectionCandidate? best;
 
     final missingSplitMuscles = _missingSplitMuscles(
@@ -147,8 +163,12 @@ class ExerciseSelector {
     );
 
     for (final entry in pool) {
-      // Canonical ID is the primary identity key.
       if (state.containsExerciseId(entry.id)) {
+        continue;
+      }
+
+      if (requireUniqueFamily &&
+          state.containsFamily(movementFamilyOf(entry.name))) {
         continue;
       }
 
@@ -170,18 +190,12 @@ class ExerciseSelector {
       final value = baseScore + coverageBonus;
 
       if (best == null) {
-        best = SelectionCandidate(
-          entry: entry,
-          score: value,
-        );
+        best = SelectionCandidate(entry: entry, score: value);
         continue;
       }
 
       if (value > best.score) {
-        best = SelectionCandidate(
-          entry: entry,
-          score: value,
-        );
+        best = SelectionCandidate(entry: entry, score: value);
         continue;
       }
 
@@ -192,10 +206,7 @@ class ExerciseSelector {
             missingMuscles: missingSplitMuscles,
             state: state,
           )) {
-        best = SelectionCandidate(
-          entry: entry,
-          score: value,
-        );
+        best = SelectionCandidate(entry: entry, score: value);
       }
     }
 
@@ -227,19 +238,14 @@ class ExerciseSelector {
       return const {};
     }
 
-    final targetMuscleCount = min(
-      availableMuscles.length,
-      desiredCount,
-    );
+    final targetMuscleCount = min(availableMuscles.length, desiredCount);
 
     final quotas = <MuscleGroup, int>{};
 
-    // Initial one-per-muscle coverage.
     for (var i = 0; i < targetMuscleCount; i++) {
       quotas[availableMuscles[i]] = 1;
     }
 
-    // Balanced distribution of remaining exercise slots.
     var remaining = desiredCount - targetMuscleCount;
     var index = 0;
 
@@ -262,9 +268,7 @@ class ExerciseSelector {
     final missing = <MuscleGroup>[];
 
     for (final entry in splitCoverageQuotas.entries) {
-      final current = state.coverageCount(
-        entry.key,
-      );
+      final current = state.coverageCount(entry.key);
 
       if (current < entry.value) {
         missing.add(entry.key);
@@ -304,13 +308,11 @@ class ExerciseSelector {
       return candidateCoverage > currentCoverage;
     }
 
-    final candidateNewPattern = !state.containsPattern(
-      candidate.movementPattern.name,
-    );
+    final candidateNewPattern =
+        !state.containsPattern(candidate.movementPattern.name);
 
-    final currentNewPattern = !state.containsPattern(
-      current.movementPattern.name,
-    );
+    final currentNewPattern =
+        !state.containsPattern(current.movementPattern.name);
 
     if (candidateNewPattern != currentNewPattern) {
       return candidateNewPattern;
@@ -336,16 +338,6 @@ class ExerciseSelector {
   // Candidate pool
   //===========================================================================
 
-  /// Builds the candidate pool for the given split.
-  ///
-  /// Selection priority:
-  ///
-  /// 1. Equipment explicitly available in the user's profile.
-  /// 2. If that pool is too small, bodyweight exercises are added as a
-  ///    universal fallback.
-  ///
-  /// Bodyweight is therefore always available as a fallback, but it does not
-  /// unnecessarily dilute a sufficiently large preferred-equipment pool.
   List<ExercisePoolEntry> _buildCandidatePool({
     required MuscleSplit split,
     required WorkoutPreferences training,
@@ -373,26 +365,18 @@ class ExerciseSelector {
 
     // -----------------------------------------------------------------------
     // 2. Bodyweight fallback
-    //
-    // Bodyweight is treated as universally available equipment.
-    // It is added only when the user's preferred equipment pool is too small.
     // -----------------------------------------------------------------------
 
     if (merged.length < desiredCount) {
       final bodyweightPool = ExercisePool.getExercises(
         splitName: split.name,
-        allowedEquipment: const [
-          EquipmentType.bodyweight,
-        ],
+        allowedEquipment: const [EquipmentType.bodyweight],
         excludeMuscles: excludeMuscles,
         split: split,
       );
 
       for (final exercise in bodyweightPool) {
-        merged.putIfAbsent(
-          exercise.id,
-          () => exercise,
-        );
+        merged.putIfAbsent(exercise.id, () => exercise);
       }
     }
 
@@ -414,18 +398,34 @@ class ExerciseSelector {
     }
 
     // -----------------------------------------------------------------------
-    // 4. Prefer unused exercises from the current week
+    // 4. Filter by FULL equipment requirement
     //
-    // This applies the weekly uniqueness constraint after equipment and
-    // experience filtering.
+    // An exercise whose `additionalEquipment` is non-empty requires ALL
+    // of those equipment types in addition to its primary `equipmentType`.
+    // This catches cases like "Band Assisted Dips" (dip bars + band),
+    // and future cases like "Dumbbell Bench Press" (dumbbells + bench).
+    // -----------------------------------------------------------------------
+
+    final availableEquipment = training.equipment.toSet();
+
+    pool = pool.where((exercise) {
+      return exercise.allRequiredEquipment.every(
+        availableEquipment.contains,
+      );
+    }).toList();
+
+    if (pool.isEmpty) {
+      return const [];
+    }
+
+    // -----------------------------------------------------------------------
+    // 5. Prefer unused exercises from the current week
     // -----------------------------------------------------------------------
 
     if (weeklyUsedExerciseIds.isNotEmpty) {
       final filtered = pool
           .where(
-            (exercise) => !weeklyUsedExerciseIds.contains(
-              exercise.id,
-            ),
+            (exercise) => !weeklyUsedExerciseIds.contains(exercise.id),
           )
           .toList();
 
@@ -441,12 +441,10 @@ class ExerciseSelector {
     }
 
     // -----------------------------------------------------------------------
-    // 5. Shuffle before scoring
+    // 6. Shuffle before scoring
     // -----------------------------------------------------------------------
 
-    pool.shuffle(
-      _random,
-    );
+    pool.shuffle(_random);
 
     return pool;
   }
@@ -455,13 +453,7 @@ class ExerciseSelector {
   // Previous program
   //===========================================================================
 
-  /// Returns the set of exercise names from the previous program.
-  ///
-  /// ExerciseScorer uses these names to penalize exercises that were already
-  /// used in the previous program.
-  Set<String> _previousExerciseNames(
-    TrainingProgram? previousProgram,
-  ) {
+  Set<String> _previousExerciseNames(TrainingProgram? previousProgram) {
     if (previousProgram == null) {
       return {};
     }
@@ -470,9 +462,7 @@ class ExerciseSelector {
 
     for (final exercises in previousProgram.weeklySchedule.values) {
       for (final exercise in exercises) {
-        names.add(
-          exercise.name,
-        );
+        names.add(exercise.name);
       }
     }
 

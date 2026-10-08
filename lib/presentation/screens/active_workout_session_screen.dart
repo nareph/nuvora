@@ -5,6 +5,7 @@ import 'package:gymgenius/domain/entities/exercise.dart';
 import 'package:gymgenius/domain/repositories/workout_repository.dart';
 import 'package:gymgenius/presentation/providers/workout_session_manager.dart';
 import 'package:gymgenius/presentation/viewmodels/active_workout_viewmodel.dart';
+import 'package:gymgenius/presentation/widgets/exercise/exercise_media.dart';
 import 'package:provider/provider.dart';
 
 class ActiveWorkoutSessionScreen extends StatelessWidget {
@@ -279,6 +280,8 @@ class ExerciseTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     String setsRepsInfo = "${exercise.sets} sets × ${exercise.reps} reps";
     if (exercise.weightSuggestion != null &&
         exercise.weightSuggestion!.isNotEmpty &&
@@ -297,49 +300,145 @@ class ExerciseTile extends StatelessWidget {
           color: isCompleted
               ? Colors.green.withAlpha(153)
               : (isCurrent
-                  ? theme.colorScheme.primary.withAlpha(204)
-                  : theme.colorScheme.outlineVariant.withAlpha(100)),
+                  ? colorScheme.primary.withAlpha(204)
+                  : colorScheme.outlineVariant.withAlpha(100)),
           width: isCurrent ? 2.0 : 1.2,
         ),
       ),
-      color: isCompleted
-          ? theme.colorScheme.surfaceContainer.withAlpha(100)
-          : null,
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isCompleted
-              ? Colors.green.shade600
-              : (isCurrent
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.secondaryContainer),
-          child: isCompleted
-              ? const Icon(Icons.check_rounded, color: Colors.white, size: 24)
-              : Text("${index + 1}",
-                  style: TextStyle(
-                      color: isCurrent
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSecondaryContainer)),
-        ),
-        title: Text(
-          exercise.name,
-          style: theme.textTheme.titleMedium?.copyWith(
-            decoration: isCompleted ? TextDecoration.lineThrough : null,
-            color: isCompleted
-                ? theme.colorScheme.onSurfaceVariant.withAlpha(153)
-                : null,
+      color: isCompleted ? colorScheme.surfaceContainer.withAlpha(100) : null,
+      child: InkWell(
+        onTap: isCompleted ? null : onTap,
+        borderRadius: BorderRadius.circular(10.0),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            children: [
+              // ── Thumbnail with status badge overlay ─────────────
+              _ExerciseTileThumbnail(
+                exerciseId: exercise.id,
+                isCompleted: isCompleted,
+                isCurrent: isCurrent,
+                index: index,
+              ),
+              const SizedBox(width: 12),
+
+              // ── Text block ──────────────────────────────────────
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      exercise.name,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        decoration:
+                            isCompleted ? TextDecoration.lineThrough : null,
+                        color: isCompleted
+                            ? colorScheme.onSurfaceVariant.withAlpha(153)
+                            : null,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      setsRepsInfo,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Trailing icon ───────────────────────────────────
+              if (!isCompleted)
+                Icon(
+                  isCurrent
+                      ? Icons.edit_note_rounded
+                      : Icons.play_circle_outline_rounded,
+                  color: colorScheme.primary,
+                ),
+            ],
           ),
         ),
-        subtitle: Text(setsRepsInfo,
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-        trailing: isCompleted
-            ? null
-            : Icon(
-                isCurrent
-                    ? Icons.edit_note_rounded
-                    : Icons.play_circle_outline_rounded,
-                color: theme.colorScheme.primary),
-        onTap: isCompleted ? null : onTap,
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Thumbnail with a small status badge in the bottom-right corner.
+// ============================================================================
+
+class _ExerciseTileThumbnail extends StatelessWidget {
+  final String exerciseId;
+  final bool isCompleted;
+  final bool isCurrent;
+  final int index;
+
+  const _ExerciseTileThumbnail({
+    required this.exerciseId,
+    required this.isCompleted,
+    required this.isCurrent,
+    required this.index,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: 56,
+      height: 56,
+      child: Stack(
+        children: [
+          // The image itself (with GIF badge handled internally by
+          // ExerciseMediaThumbnail).
+          ExerciseMediaThumbnail(
+            exerciseId: exerciseId,
+            size: 56,
+          ),
+
+          // Status badge — replaces the GIF badge position when the
+          // exercise is current / completed, so the two badges never
+          // overlap.
+          Positioned(
+            left: 2,
+            top: 2,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? Colors.green.shade600
+                    : (isCurrent
+                        ? colorScheme.primary
+                        : colorScheme.secondaryContainer),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: colorScheme.surface,
+                  width: 1.5,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: isCompleted
+                  ? const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    )
+                  : Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        color: isCurrent
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }

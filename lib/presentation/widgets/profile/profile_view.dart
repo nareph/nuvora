@@ -1,6 +1,7 @@
 // lib/presentation/widgets/profile/profile_view.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gymgenius/domain/enums/budget_level.dart';
 import 'package:gymgenius/domain/enums/equipment_type.dart';
 import 'package:gymgenius/domain/enums/experience_level.dart';
@@ -11,6 +12,7 @@ import 'package:gymgenius/domain/enums/session_duration.dart';
 import 'package:gymgenius/domain/enums/workout_day.dart';
 import 'package:gymgenius/domain/enums/workout_frequency.dart';
 import 'package:gymgenius/domain/enums/activity_level.dart';
+import 'package:gymgenius/presentation/question/profile_questions.dart';
 import 'package:gymgenius/presentation/widgets/profile/preference_display_item.dart';
 import 'package:gymgenius/presentation/widgets/profile/preference_edit_item.dart';
 import 'package:gymgenius/presentation/widgets/profile/profile_header.dart';
@@ -110,7 +112,6 @@ final List<ProfileField> profileFields = [
     options: MuscleGroup.values.map((e) => e.value).toList(),
     optionLabels: {for (var e in MuscleGroup.values) e.value: e.displayName},
   ),
-  // --- Nutrition Engine fields (new) ---
   ProfileField(
     id: 'food_budget',
     label: 'Food Budget',
@@ -118,9 +119,6 @@ final List<ProfileField> profileFields = [
     options: BudgetLevel.values.map((e) => e.value).toList(),
     optionLabels: {for (var e in BudgetLevel.values) e.value: e.displayName},
   ),
-  // food_restrictions/food_preferences are plain string tags, not enums —
-  // options/labels mirror the choices offered in profile_questions.dart
-  // so the same values round-trip cleanly between onboarding and editing.
   const ProfileField(
     id: 'food_restrictions',
     label: 'Food Allergies / Restrictions',
@@ -132,7 +130,7 @@ final List<ProfileField> profileFields = [
       'fish',
       'egg',
       'dairy',
-      'gluten',
+      'gluten'
     ],
     optionLabels: {
       'vegetarian': 'Vegetarian',
@@ -204,7 +202,50 @@ final List<ProfileField> profileFields = [
   ),
 ];
 
-class ProfileView extends StatelessWidget {
+// ============================================================
+// Validation rules per physical stat key.
+// Keep in sync with StatsInputView validators.
+// ============================================================
+typedef _StatRule = ({
+  num min,
+  num max,
+  bool isInteger,
+  bool isOptional,
+  String label,
+});
+
+const Map<String, _StatRule> _statRules = {
+  'age': (
+    min: 10,
+    max: 100,
+    isInteger: true,
+    isOptional: false,
+    label: 'age',
+  ),
+  'height_m': (
+    min: 0.5,
+    max: 2.5,
+    isInteger: false,
+    isOptional: false,
+    label: 'height',
+  ),
+  'weight_kg': (
+    min: 20,
+    max: 300,
+    isInteger: false,
+    isOptional: false,
+    label: 'weight',
+  ),
+  'target_weight_kg': (
+    min: 20,
+    max: 300,
+    isInteger: false,
+    isOptional: true,
+    label: 'target weight',
+  ),
+};
+
+class ProfileView extends StatefulWidget {
   final String displayName;
   final String email;
   final bool isEditing;
@@ -233,12 +274,19 @@ class ProfileView extends StatelessWidget {
   });
 
   @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView> {
+  final _formKey = GlobalKey<FormState>();
+
+  @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
     bool noPreferencesSet = profileFields.every((field) {
-      final value = sourceDataForUI[field.id];
+      final value = widget.sourceDataForUI[field.id];
       return value == null ||
           (value is List && value.isEmpty) ||
           (value is Map &&
@@ -246,27 +294,164 @@ class ProfileView extends StatelessWidget {
           (value is String && value.isEmpty);
     });
 
-    if (noPreferencesSet && !isEditing && !isSaving) {
+    if (noPreferencesSet && !widget.isEditing && !widget.isSaving) {
       return _buildNoPreferencesState(context, colorScheme, textTheme);
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: <Widget>[
-          if (isOffline) _buildOfflineBanner(context, colorScheme),
-          ProfileHeader(
-            displayName: displayName,
-            email: email,
-            memberSince: 'N/A',
-          ),
-          const SizedBox(height: 24),
-          _buildPreferencesHeader(context, colorScheme, textTheme),
-          const SizedBox(height: 12),
-          if (isSaving) _buildSavingIndicator(),
-          if (!isSaving) _buildPreferencesList(context, colorScheme),
-          if (isEditing && !isSaving) _buildActionButtons(context, colorScheme),
-        ],
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            if (widget.isOffline) _buildOfflineBanner(context, colorScheme),
+            ProfileHeader(
+              displayName: widget.displayName,
+              email: widget.email,
+              memberSince: 'N/A',
+            ),
+            const SizedBox(height: 24),
+            _buildPreferencesHeader(context, colorScheme, textTheme),
+            const SizedBox(height: 12),
+            if (widget.isSaving) _buildSavingIndicator(),
+            if (!widget.isSaving) _buildPreferencesList(context, colorScheme),
+            if (widget.isEditing && !widget.isSaving)
+              _buildActionButtons(context, colorScheme),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // Validators
+  // ============================================================
+  String? _validateStat(String? value, String statKey) {
+    final rule = _statRules[statKey];
+    if (rule == null) return null;
+
+    final text = value?.trim() ?? '';
+
+    if (text.isEmpty) {
+      return rule.isOptional ? null : 'Please enter your ${rule.label}.';
+    }
+
+    final parsed = rule.isInteger ? int.tryParse(text) : double.tryParse(text);
+
+    if (parsed == null) {
+      return 'Please enter a valid number for ${rule.label}.';
+    }
+
+    if (parsed < rule.min) {
+      return '${rule.label[0].toUpperCase()}${rule.label.substring(1)} '
+          'must be at least ${rule.min}.';
+    }
+    if (parsed > rule.max) {
+      return '${rule.label[0].toUpperCase()}${rule.label.substring(1)} '
+          'cannot exceed ${rule.max}.';
+    }
+
+    return null;
+  }
+
+  // ============================================================
+  // Physical stats section
+  // ============================================================
+  Widget _buildPhysicalStatsSection(
+      BuildContext context, ColorScheme colorScheme) {
+    final stats =
+        widget.sourceDataForUI['physical_stats'] as Map<String, dynamic>? ?? {};
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      elevation: 1,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.monitor_weight_outlined,
+                    size: 20, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text('Body Measurements',
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...statSubKeyEntries.map((entry) {
+              final controllerKey = 'physical_stats_${entry.key}';
+              final controller = widget.controllers[controllerKey];
+              final rule = _statRules[entry.key];
+              final isDecimal = rule?.isInteger == false;
+
+              if (widget.isEditing) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: TextFormField(
+                    controller: controller,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: isDecimal,
+                      signed: false,
+                    ),
+                    inputFormatters: isDecimal
+                        ? [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d{0,2}')),
+                          ]
+                        : [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: rule?.isOptional == true
+                          ? '${entry.label} (${entry.unit}, optional)'
+                          : '${entry.label} (${entry.unit})',
+                      hintText: entry.hint,
+                      prefixIcon: Icon(
+                        entry.key == 'age'
+                            ? Icons.cake_outlined
+                            : entry.key == 'height_m'
+                                ? Icons.height_outlined
+                                : entry.key == 'target_weight_kg'
+                                    ? Icons.flag_outlined
+                                    : Icons.monitor_weight_outlined,
+                        size: 20,
+                      ),
+                    ),
+                    validator: (v) => _validateStat(v, entry.key),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                  ),
+                );
+              } else {
+                final raw = stats[entry.key];
+                final hasValue = raw != null &&
+                    raw.toString().isNotEmpty &&
+                    raw != 0 &&
+                    raw != 0.0;
+                final display = hasValue ? '$raw ${entry.unit}' : '—';
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(entry.label, style: textTheme.bodyMedium),
+                      Text(
+                        display,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: hasValue
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -277,10 +462,10 @@ class ProfileView extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          if (isOffline) _buildOfflineBanner(context, colorScheme),
+          if (widget.isOffline) _buildOfflineBanner(context, colorScheme),
           ProfileHeader(
-            displayName: displayName,
-            email: email,
+            displayName: widget.displayName,
+            email: widget.email,
             memberSince: 'N/A',
           ),
           const SizedBox(height: 24),
@@ -298,7 +483,7 @@ class ProfileView extends StatelessWidget {
                           ?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   Text(
-                    isOffline
+                    widget.isOffline
                         ? "You're currently offline. Connect to the internet to set or update your preferences."
                         : "Complete your fitness profile to get personalized AI workout plans tailored just for you.",
                     style: textTheme.bodyLarge,
@@ -308,7 +493,7 @@ class ProfileView extends StatelessWidget {
                   ElevatedButton.icon(
                     icon: const Icon(Icons.edit_note_outlined),
                     label: const Text("Set Preferences Now"),
-                    onPressed: isOffline ? null : onToggleEdit,
+                    onPressed: widget.isOffline ? null : widget.onToggleEdit,
                   ),
                 ],
               ),
@@ -350,19 +535,19 @@ class ProfileView extends StatelessWidget {
       children: [
         Text("Your Preferences",
             style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        if (!isEditing && !isSaving)
+        if (!widget.isEditing && !widget.isSaving)
           TextButton.icon(
             icon: Icon(Icons.edit_outlined,
                 size: 20,
-                color: isOffline
+                color: widget.isOffline
                     ? colorScheme.onSurfaceVariant
                     : colorScheme.primary),
             label: Text("Edit All",
                 style: textTheme.labelLarge?.copyWith(
-                    color: isOffline
+                    color: widget.isOffline
                         ? colorScheme.onSurfaceVariant
                         : colorScheme.primary)),
-            onPressed: isOffline ? null : onToggleEdit,
+            onPressed: widget.isOffline ? null : widget.onToggleEdit,
           ),
       ],
     );
@@ -386,24 +571,27 @@ class ProfileView extends StatelessWidget {
 
   Widget _buildPreferencesList(BuildContext context, ColorScheme colorScheme) {
     return Column(
-      children: profileFields.map((field) {
-        if (isEditing) {
-          return PreferenceEditItem(
-            key: ValueKey('edit_${field.id}'),
-            field: field,
-            currentValue: sourceDataForUI[field.id],
-            controllers: controllers,
-            onUpdate: onUpdatePreference,
-            isOffline: isOffline,
-          );
-        } else {
-          return PreferenceDisplayItem(
-            key: ValueKey('display_${field.id}'),
-            field: field,
-            currentValue: sourceDataForUI[field.id],
-          );
-        }
-      }).toList(),
+      children: [
+        _buildPhysicalStatsSection(context, colorScheme),
+        ...profileFields.map((field) {
+          if (widget.isEditing) {
+            return PreferenceEditItem(
+              key: ValueKey('edit_${field.id}'),
+              field: field,
+              currentValue: widget.sourceDataForUI[field.id],
+              controllers: widget.controllers,
+              onUpdate: widget.onUpdatePreference,
+              isOffline: widget.isOffline,
+            );
+          } else {
+            return PreferenceDisplayItem(
+              key: ValueKey('display_${field.id}'),
+              field: field,
+              currentValue: widget.sourceDataForUI[field.id],
+            );
+          }
+        }).toList(),
+      ],
     );
   }
 
@@ -414,15 +602,26 @@ class ProfileView extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           OutlinedButton(
-              onPressed: onCancelChanges, child: const Text("Cancel")),
+              onPressed: widget.onCancelChanges, child: const Text("Cancel")),
           const SizedBox(width: 12),
           ElevatedButton.icon(
             icon: const Icon(Icons.save_alt_outlined, size: 20),
             label: const Text("Save Changes"),
-            onPressed: onSaveChanges,
+            onPressed: _handleSave,
           ),
         ],
       ),
     );
+  }
+
+  void _handleSave() {
+    final form = _formKey.currentState;
+    if (form == null) return;
+
+    if (!form.validate()) {
+      // Errors are already shown inline by the validators.
+      return;
+    }
+    widget.onSaveChanges();
   }
 }

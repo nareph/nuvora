@@ -90,7 +90,10 @@ class ExerciseLoggingViewModel extends ChangeNotifier {
   }
 
   String _getInitialWeightSuggestion() {
-    if (!exercise.isBodyweight) return "";
+    // Weighted exercises are pre-filled with the weight suggestion.
+    // Bodyweight exercises start empty.
+    if (exercise.isBodyweight) return "";
+
     final weightSuggestion = exercise.weightSuggestion ?? '';
 
     if (['bodyweight', 'bw', 'n/a', '']
@@ -98,7 +101,7 @@ class ExerciseLoggingViewModel extends ChangeNotifier {
       return "";
     }
 
-    final weightRegex = RegExp(r'^(\d+(.\d+)?)');
+    final weightRegex = RegExp(r'^(\d+(\.\d+)?)');
     final match = weightRegex.firstMatch(weightSuggestion);
     return match?.group(1) ?? "";
   }
@@ -210,16 +213,20 @@ class ExerciseLoggingViewModel extends ChangeNotifier {
       return "Please enter a valid number of repetitions.";
     }
 
-    String weightToLog = "N/A";
-    if (exercise.isBodyweight) {
+    // Parse the weight only for weighted exercises.
+    // Bodyweight exercises log "0".
+    String weightToLog = "0";
+
+    if (!exercise.isBodyweight) {
       final weightInput = weightController.text.trim();
-      if (weightInput.isEmpty) {
-        weightToLog = "0";
-      } else {
+
+      if (weightInput.isNotEmpty) {
         final parsedWeight = double.tryParse(weightInput);
+
         if (parsedWeight == null || parsedWeight < 0) {
           return "Weight must be a valid positive number.";
         }
+
         weightToLog = parsedWeight.toStringAsFixed(2);
       }
     }

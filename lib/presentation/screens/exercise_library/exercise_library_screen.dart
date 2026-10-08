@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gymgenius/domain/enums/equipment_type.dart';
 import 'package:gymgenius/domain/enums/exercise_category.dart';
 import 'package:gymgenius/domain/enums/muscle_group.dart';
+import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart';
 import 'package:gymgenius/presentation/blocs/exercise_library/exercise_library_bloc.dart';
 import 'package:gymgenius/presentation/blocs/exercise_library/exercise_library_event.dart';
 import 'package:gymgenius/presentation/blocs/exercise_library/exercise_library_state.dart';
@@ -319,7 +320,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen>
     );
   }
 
-  Widget _buildExerciseList(List exercises) {
+  Widget _buildExerciseList(List<ExercisePoolEntry> exercises) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: exercises.length,

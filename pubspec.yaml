@@ -59,6 +59,10 @@ flutter:
   assets:
     - assets/sounds/
     - assets/launcher_icon/
+    - assets/exercises/exercises.json
+    - assets/exercises/exercise_taxonomy.json
+    - assets/exercises/images/
+    - assets/exercises/videos/  
 
 flutter_launcher_icons:
   android: true

@@ -30,9 +30,7 @@ class ExerciseDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              _showExerciseInfo(context);
-            },
+            onPressed: () => _showExerciseInfo(context),
           ),
         ],
       ),
@@ -41,12 +39,18 @@ class ExerciseDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ✅ NEW: media block (GIF + attribution) at the top.
+            _ExerciseMedia(exercise: exercise),
+            const SizedBox(height: 16),
+
             // Header with muscle groups
             _buildHeader(context),
             const SizedBox(height: 24),
+
             // Description
             ExerciseDescription(description: exercise.description),
             const SizedBox(height: 24),
+
             // Details
             _buildDetails(context),
           ],
@@ -62,7 +66,6 @@ class ExerciseDetailScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title
         Text(
           exercise.name,
           style: textTheme.headlineMedium?.copyWith(
@@ -70,7 +73,6 @@ class ExerciseDetailScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        // Tags (muscle groups, equipment, category)
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -144,58 +146,26 @@ class ExerciseDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            _buildDetailRow(context, 'Category', exercise.category.displayName),
             _buildDetailRow(
-              context,
-              'Category',
-              exercise.category.displayName,
-            ),
+                context, 'Difficulty', exercise.difficulty.displayName),
             _buildDetailRow(
-              context,
-              'Difficulty',
-              exercise.difficulty.displayName,
-            ),
+                context, 'Equipment', exercise.equipmentType.displayName),
+            _buildDetailRow(context, 'Movement Pattern',
+                exercise.movementPattern.displayName),
             _buildDetailRow(
-              context,
-              'Equipment',
-              exercise.equipmentType.displayName,
-            ),
+                context, 'Mechanics', exercise.mechanics.displayName),
             _buildDetailRow(
-              context,
-              'Movement Pattern',
-              exercise.movementPattern.displayName,
-            ),
+                context, 'Force Type', exercise.forceType.displayName),
             _buildDetailRow(
-              context,
-              'Mechanics',
-              exercise.mechanics.displayName,
-            ),
+                context, 'Laterality', exercise.laterality.displayName),
             _buildDetailRow(
-              context,
-              'Force Type',
-              exercise.forceType.displayName,
-            ),
-            _buildDetailRow(
-              context,
-              'Laterality',
-              exercise.laterality.displayName,
-            ),
-            _buildDetailRow(
-              context,
-              'Plane of Motion',
-              exercise.planeOfMotion.displayName,
-            ),
+                context, 'Plane of Motion', exercise.planeOfMotion.displayName),
             if (exercise.weightSuggestion != null)
               _buildDetailRow(
-                context,
-                'Weight Suggestion',
-                exercise.weightSuggestion!,
-              ),
+                  context, 'Weight Suggestion', exercise.weightSuggestion!),
             if (exercise.usesWeight)
-              _buildDetailRow(
-                context,
-                'Uses Weight',
-                'Yes',
-              ),
+              _buildDetailRow(context, 'Uses Weight', 'Yes'),
           ],
         ),
       ),
@@ -268,6 +238,13 @@ class ExerciseDetailScreen extends StatelessWidget {
             Text('Category: ${exercise.category.displayName}'),
             const SizedBox(height: 8),
             Text('Difficulty: ${exercise.difficulty.displayName}'),
+            if (exercise.mediaAttribution != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                'Media: ${exercise.mediaAttribution}',
+                style: const TextStyle(fontSize: 11),
+              ),
+            ],
           ],
         ),
         actions: [
@@ -277,6 +254,87 @@ class ExerciseDetailScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ============================================================================
+// Media block — shows the GIF with a graceful placeholder + attribution
+// ============================================================================
+
+class _ExerciseMedia extends StatelessWidget {
+  final ExercisePoolEntry exercise;
+
+  const _ExerciseMedia({required this.exercise});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final hasGif = exercise.gifUrl != null && exercise.gifUrl!.isNotEmpty;
+
+    if (!hasGif) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Card wrapper with rounded corners + shadow.
+        Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxHeight: 320),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Image.asset(
+            exercise.gifUrl!,
+            fit: BoxFit.contain,
+            // Decode at a reasonable size — GIFs are 180×180 but the
+            // device pixel ratio might call for ~2x on hi-DPI screens.
+            cacheWidth: 360,
+            cacheHeight: 360,
+            // Keep the last frame visible while the next loop starts.
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) => Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.broken_image_outlined,
+                      size: 48,
+                      color: colorScheme.onSurface.withAlpha(102),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Preview unavailable',
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withAlpha(153),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Attribution (required by the dataset licence).
+        if (exercise.mediaAttribution != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              exercise.mediaAttribution!,
+              style: TextStyle(
+                fontSize: 10,
+                color: colorScheme.onSurface.withAlpha(102),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
     );
   }
 }

@@ -16,8 +16,6 @@ import 'catalog/exercise_catalog.dart';
 /// - Target muscles for custom/focused splits.
 /// - Muscle-based applicability for aggregate splits such as Full Body and
 ///   Shoulders & Core.
-///
-/// The old split-specific exercise pools are intentionally not used here.
 class ExercisePool {
   ExercisePool._();
 
@@ -66,6 +64,7 @@ class ExercisePool {
   }) {
     final normalizedSplitName = splitName.trim();
     final splitMuscles = split.muscles.toSet();
+    final allowedSet = allowedEquipment.toSet();
 
     final applicabilityMode = _resolveApplicabilityMode(
       splitName: normalizedSplitName,
@@ -73,7 +72,9 @@ class ExercisePool {
     );
 
     return ExerciseCatalog.getAll().where((entry) {
-      if (!allowedEquipment.contains(entry.equipmentType)) {
+      // Multi-equipment check: the user must have ALL required equipment
+      // (primary + additional) for the exercise to be offered.
+      if (!entry.allRequiredEquipment.every(allowedSet.contains)) {
         return false;
       }
 
@@ -100,15 +101,6 @@ class ExercisePool {
     }).toList();
   }
 
-  /// Determines how an exercise is matched against a split.
-  ///
-  /// Standard splits use [ExercisePoolEntry.compatibleSplits].
-  ///
-  /// Focused/custom splits use strict target-muscle matching so unrelated
-  /// primary muscles do not leak into a specialized program.
-  ///
-  /// Aggregate splits use muscle-based matching because their exact
-  /// applicability is derived from multiple standard muscle groups.
   static _ApplicabilityMode _resolveApplicabilityMode({
     required String splitName,
     required MuscleSplit split,
@@ -136,13 +128,6 @@ class ExercisePool {
     return _ApplicabilityMode.compatibleSplit;
   }
 
-  /// Tests whether the primary target muscles are compatible with a split.
-  ///
-  /// Strict mode:
-  /// every primary target muscle must belong to the split.
-  ///
-  /// Permissive mode:
-  /// at least one primary target muscle must belong to the split.
   static bool _isMuscleCompatible(
     ExercisePoolEntry entry,
     Set<MuscleGroup> splitMuscles, {
@@ -153,14 +138,10 @@ class ExercisePool {
     }
 
     if (strict) {
-      return entry.targetMuscles.every(
-        splitMuscles.contains,
-      );
+      return entry.targetMuscles.every(splitMuscles.contains);
     }
 
-    return entry.targetMuscles.any(
-      splitMuscles.contains,
-    );
+    return entry.targetMuscles.any(splitMuscles.contains);
   }
 
   // ============================================================
@@ -178,9 +159,7 @@ class ExercisePool {
       final excludedSet = excludeMuscles.toSet();
 
       filtered = filtered.where((entry) {
-        return !entry.targetMuscles.any(
-          excludedSet.contains,
-        );
+        return !entry.targetMuscles.any(excludedSet.contains);
       }).toList();
     }
 
@@ -193,13 +172,11 @@ class ExercisePool {
           focusMuscles: focusSet,
           strict: false,
         );
-
         final scoreB = _focusScore(
           entry: b,
           focusMuscles: focusSet,
           strict: false,
         );
-
         return scoreB.compareTo(scoreA);
       });
     }
@@ -242,9 +219,7 @@ class ExercisePool {
       );
     }
 
-    final catalogSplit = SplitCatalog.byName(
-      normalized,
-    );
+    final catalogSplit = SplitCatalog.byName(normalized);
 
     if (catalogSplit != null) {
       return catalogSplit;
@@ -254,9 +229,7 @@ class ExercisePool {
       return MuscleSplit(
         name: normalized,
         theme: 'Custom Focus',
-        muscles: List<MuscleGroup>.unmodifiable(
-          focusMuscles,
-        ),
+        muscles: List<MuscleGroup>.unmodifiable(focusMuscles),
         recoveryCost: 1,
         isFullBody: false,
       );
@@ -273,26 +246,19 @@ class ExercisePool {
     return splitName.toLowerCase().startsWith('focused:');
   }
 
-  static List<MuscleGroup> _parseFocusedMuscles(
-    String splitName,
-  ) {
+  static List<MuscleGroup> _parseFocusedMuscles(String splitName) {
     final lower = splitName.toLowerCase();
 
     if (!lower.startsWith('focused:')) {
       return const [];
     }
 
-    var value = splitName.substring(
-      splitName.indexOf(':') + 1,
-    );
+    var value = splitName.substring(splitName.indexOf(':') + 1);
 
     final dayIndex = value.toLowerCase().lastIndexOf(' day ');
 
     if (dayIndex != -1) {
-      value = value.substring(
-        0,
-        dayIndex,
-      );
+      value = value.substring(0, dayIndex);
     }
 
     value = value.trim();
@@ -309,9 +275,7 @@ class ExercisePool {
         .where((part) => part.isNotEmpty);
 
     for (final part in parts) {
-      final muscle = _muscleFromDisplayName(
-        part,
-      );
+      final muscle = _muscleFromDisplayName(part);
 
       if (muscle != null && !result.contains(muscle)) {
         result.add(muscle);
@@ -321,9 +285,7 @@ class ExercisePool {
     return result;
   }
 
-  static MuscleGroup? _muscleFromDisplayName(
-    String value,
-  ) {
+  static MuscleGroup? _muscleFromDisplayName(String value) {
     final normalized =
         value.trim().toLowerCase().replaceAll('-', ' ').replaceAll('_', ' ');
 
@@ -366,9 +328,7 @@ class ExercisePool {
     }
 
     final allPrimaryMatch = entry.targetMuscles.isNotEmpty &&
-        entry.targetMuscles.every(
-          focusMuscles.contains,
-        );
+        entry.targetMuscles.every(focusMuscles.contains);
 
     return allPrimaryMatch ? matchingPrimary : 0;
   }
@@ -381,18 +341,14 @@ class ExercisePool {
     return ExerciseCatalog.getAll();
   }
 
-  static ExercisePoolEntry? findById(
-    String id,
-  ) {
+  static ExercisePoolEntry? findById(String id) {
     final normalized = id.trim();
 
     if (normalized.isEmpty) {
       return null;
     }
 
-    return ExerciseCatalog.findById(
-      normalized,
-    );
+    return ExerciseCatalog.findById(normalized);
   }
 
   static ExercisePoolEntry? findByName(
@@ -405,10 +361,10 @@ class ExercisePool {
       return null;
     }
 
+    final allowedSet = allowedEquipment.toSet();
+
     for (final entry in ExerciseCatalog.getAll()) {
-      if (!allowedEquipment.contains(
-        entry.equipmentType,
-      )) {
+      if (!entry.allRequiredEquipment.every(allowedSet.contains)) {
         continue;
       }
 
@@ -430,17 +386,13 @@ class ExercisePool {
     var bestScore = -1;
 
     final targetSet = targetMuscles.toSet();
+    final allowedSet = allowedEquipment.toSet();
 
-    final normalizedExcludedNames = excludeNames
-        .map(
-          (name) => name.trim().toLowerCase(),
-        )
-        .toSet();
+    final normalizedExcludedNames =
+        excludeNames.map((name) => name.trim().toLowerCase()).toSet();
 
     for (final entry in ExerciseCatalog.getAll()) {
-      if (!allowedEquipment.contains(
-        entry.equipmentType,
-      )) {
+      if (!entry.allRequiredEquipment.every(allowedSet.contains)) {
         continue;
       }
 
@@ -451,9 +403,7 @@ class ExercisePool {
       }
 
       if (excludeMuscles.isNotEmpty &&
-          entry.targetMuscles.any(
-            excludeMuscles.contains,
-          )) {
+          entry.targetMuscles.any(excludeMuscles.contains)) {
         continue;
       }
 

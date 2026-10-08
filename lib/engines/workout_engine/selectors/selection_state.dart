@@ -1,6 +1,7 @@
 // lib/engines/workout_engine/selectors/selection_state.dart
 
 import 'package:gymgenius/domain/enums/muscle_group.dart';
+import 'package:gymgenius/engines/workout_engine/selectors/movement_family.dart';
 import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart';
 
 /// Mutable state used during the selection of ONE workout.
@@ -12,7 +13,8 @@ import 'package:gymgenius/engines/workout_engine/shared/exercise_pool_entry.dart
 /// • selected exercises
 /// • used exercise IDs (canonical identity)
 /// • used normalized names (fallback guard)
-/// • used movement patterns
+/// • used movement patterns (coarse enum)
+/// • used movement families (fine-grained, name-derived)
 /// • primary muscle coverage
 /// • secondary muscle coverage
 class SelectionState {
@@ -63,13 +65,41 @@ class SelectionState {
   }
 
   //==============================================================
-  // Movement diversity
+  // Movement diversity — coarse (enum) and fine (family)
   //==============================================================
 
   final Set<String> _movementPatterns = {};
 
+  /// Coarse tracking: broad movement pattern from the enum.
   bool containsPattern(String pattern) {
     return _movementPatterns.contains(pattern);
+  }
+
+  /// Fine-grained tracking: name-derived movement families.
+  ///
+  /// Two exercises in the same family are essentially the same movement
+  /// with a different equipment, angle, or grip, e.g.:
+  /// "Staggered Push-Up" and "Offset Bench Push-Up" both belong to the
+  /// 'push-up' family and should not be chosen together on the same day.
+  final Set<String> _movementFamilies = {};
+
+  /// Returns true if an exercise of the given family has already been
+  /// selected during this workout.
+  bool containsFamily(String? family) {
+    if (family == null) return false;
+
+    return _movementFamilies.contains(family);
+  }
+
+  /// Returns how many exercises of the given family have been selected.
+  ///
+  /// Currently returns 0 or 1 (the set is a set), but kept as an int so
+  /// future versions can count multiple selections of the same family
+  /// if we decide to allow more than one.
+  int familyCount(String? family) {
+    if (family == null) return 0;
+
+    return _movementFamilies.contains(family) ? 1 : 0;
   }
 
   //==============================================================
@@ -109,8 +139,14 @@ class SelectionState {
     // Secondary: store normalized name.
     _usedNormalizedNames.add(_normalizeName(entry.name));
 
-    // Track movement pattern.
+    // Coarse movement pattern.
     _movementPatterns.add(entry.movementPattern.name);
+
+    // Fine-grained movement family (null-safe).
+    final family = movementFamilyOf(entry.name);
+    if (family != null) {
+      _movementFamilies.add(family);
+    }
 
     // Primary muscles.
     for (final muscle in entry.targetMuscles) {
@@ -137,6 +173,7 @@ class SelectionState {
 
   bool hasCoveredAllFocusMuscles(List<MuscleGroup> focusMuscles) {
     if (focusMuscles.isEmpty) return true;
+
     return focusMuscles.every(coversMuscle);
   }
 
@@ -153,6 +190,7 @@ class SelectionState {
     _usedExerciseIds.clear();
     _usedNormalizedNames.clear();
     _movementPatterns.clear();
+    _movementFamilies.clear();
     _primaryCoverage.clear();
     _secondaryCoverage.clear();
   }

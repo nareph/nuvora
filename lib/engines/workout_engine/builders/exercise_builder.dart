@@ -3,6 +3,7 @@ import 'package:gymgenius/domain/entities/health_profile.dart';
 import 'package:gymgenius/domain/enums/experience_level.dart';
 import 'package:gymgenius/engines/workout_engine/builders/description_builder.dart';
 import 'package:gymgenius/engines/workout_engine/builders/difficulty_builder.dart';
+import 'package:gymgenius/engines/workout_engine/builders/mapper/weight_suggestion_resolver.dart';
 import 'package:gymgenius/engines/workout_engine/builders/reps_builder.dart';
 import 'package:gymgenius/engines/workout_engine/builders/rest_builder.dart';
 import 'package:gymgenius/engines/workout_engine/builders/sets_builder.dart';
@@ -60,6 +61,12 @@ class ExerciseBuilder {
       entry: entry,
     );
 
+    // resolve the weight suggestion from the user profile.
+    final weightSuggestion = const WeightSuggestionResolver().resolve(
+      entry: entry,
+      profile: profile,
+    );
+
     return ExerciseMapper.toDomain(
       entry: entry,
       sets: sets,
@@ -68,6 +75,7 @@ class ExerciseBuilder {
       difficulty: difficulty,
       tempo: tempo,
       description: description,
+      weightSuggestion: weightSuggestion,
     );
   }
 

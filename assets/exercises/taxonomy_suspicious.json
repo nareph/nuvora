@@ -1,0 +1,476 @@
+[
+  {
+    "id": "0011",
+    "name": "assisted hanging knee raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0010",
+    "name": "assisted hanging knee raise with throw down",
+    "reason": "row→pull",
+    "actual": "core"
+  },
+  {
+    "id": "0010",
+    "name": "assisted hanging knee raise with throw down",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0012",
+    "name": "assisted lying leg raise with lateral throw down",
+    "reason": "row→pull",
+    "actual": "core"
+  },
+  {
+    "id": "0012",
+    "name": "assisted lying leg raise with lateral throw down",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0013",
+    "name": "assisted lying leg raise with throw down",
+    "reason": "row→pull",
+    "actual": "core"
+  },
+  {
+    "id": "0013",
+    "name": "assisted lying leg raise with throw down",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0979",
+    "name": "band horizontal pallof press",
+    "reason": "press→push",
+    "actual": "rotation"
+  },
+  {
+    "id": "1002",
+    "name": "band lying straight leg raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "1003",
+    "name": "band squat row",
+    "reason": "squat→squat",
+    "actual": "pull"
+  },
+  {
+    "id": "1015",
+    "name": "band vertical pallof press",
+    "reason": "press→push",
+    "actual": "rotation"
+  },
+  {
+    "id": "0063",
+    "name": "barbell narrow stance squat",
+    "reason": "row→pull",
+    "actual": "squat"
+  },
+  {
+    "id": "0022",
+    "name": "barbell pullover to press",
+    "reason": "press→push",
+    "actual": "pull"
+  },
+  {
+    "id": "2799",
+    "name": "barbell sitted alternate leg raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "2800",
+    "name": "barbell sitted alternate leg raise (female)",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "2798",
+    "name": "barbell squat jump step rear lunge",
+    "reason": "squat→squat",
+    "actual": "lunge"
+  },
+  {
+    "id": "3168",
+    "name": "bodyweight squatting row",
+    "reason": "squat→squat",
+    "actual": "pull"
+  },
+  {
+    "id": "3167",
+    "name": "bodyweight squatting row (with towel)",
+    "reason": "squat→squat",
+    "actual": "pull"
+  },
+  {
+    "id": "1722",
+    "name": "cable high pulley overhead tricep extension",
+    "reason": "extension→push",
+    "actual": "pull"
+  },
+  {
+    "id": "0184",
+    "name": "cable lying extension pullover (with rope attachment)",
+    "reason": "extension→push",
+    "actual": "pull"
+  },
+  {
+    "id": "1322",
+    "name": "cable rope extension incline bench row",
+    "reason": "extension→push",
+    "actual": "pull"
+  },
+  {
+    "id": "1724",
+    "name": "cable rope high pulley overhead tricep extension",
+    "reason": "extension→push",
+    "actual": "pull"
+  },
+  {
+    "id": "1717",
+    "name": "cable squat row (with rope attachment)",
+    "reason": "squat→squat",
+    "actual": "pull"
+  },
+  {
+    "id": "1644",
+    "name": "cable squatting curl",
+    "reason": "squat→squat",
+    "actual": "pull"
+  },
+  {
+    "id": "2963",
+    "name": "captains chair straight leg raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "1649",
+    "name": "dumbbell alternating bicep curl with leg raised on exercise ball",
+    "reason": "curl→devrait être pull",
+    "actual": "core"
+  },
+  {
+    "id": "1649",
+    "name": "dumbbell alternating bicep curl with leg raised on exercise ball",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "1651",
+    "name": "dumbbell bicep curl lunge with bowling motion",
+    "reason": "curl→devrait être pull",
+    "actual": "lunge"
+  },
+  {
+    "id": "1652",
+    "name": "dumbbell bicep curl on exercise ball with leg raised",
+    "reason": "curl→devrait être pull",
+    "actual": "core"
+  },
+  {
+    "id": "1652",
+    "name": "dumbbell bicep curl on exercise ball with leg raised",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "1655",
+    "name": "dumbbell biceps curl squat",
+    "reason": "curl→devrait être pull",
+    "actual": "squat"
+  },
+  {
+    "id": "1732",
+    "name": "dumbbell forward lunge triceps extension",
+    "reason": "extension→push",
+    "actual": "lunge"
+  },
+  {
+    "id": "1658",
+    "name": "dumbbell lunge with bicep curl",
+    "reason": "curl→devrait être pull",
+    "actual": "lunge"
+  },
+  {
+    "id": "3547",
+    "name": "dumbbell seated biceps curl to shoulder press",
+    "reason": "press→push",
+    "actual": "pull"
+  },
+  {
+    "id": "1679",
+    "name": "dumbbell seated one arm bicep curl on exercise ball with leg raised",
+    "reason": "curl→devrait être pull",
+    "actual": "core"
+  },
+  {
+    "id": "1679",
+    "name": "dumbbell seated one arm bicep curl on exercise ball with leg raised",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "3560",
+    "name": "dumbbell standing alternate hammer curl and press",
+    "reason": "press→push",
+    "actual": "pull"
+  },
+  {
+    "id": "1684",
+    "name": "dumbbell step up single leg balance with bicep curl",
+    "reason": "curl→devrait être pull",
+    "actual": "lunge"
+  },
+  {
+    "id": "5201",
+    "name": "dumbbell waiter biceps curl",
+    "reason": "curl→devrait être pull",
+    "actual": "carry"
+  },
+  {
+    "id": "1343",
+    "name": "exercise ball prone leg raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "1764",
+    "name": "hanging leg hip raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0472",
+    "name": "hanging leg raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "1761",
+    "name": "hanging oblique knee raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0474",
+    "name": "hanging straight leg hip raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0475",
+    "name": "hanging straight leg raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0476",
+    "name": "hanging straight twisting leg hip raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0484",
+    "name": "hip raise (bent knee)",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0489",
+    "name": "hyperextension",
+    "reason": "extension→push",
+    "actual": "hinge"
+  },
+  {
+    "id": "0488",
+    "name": "hyperextension (on bench)",
+    "reason": "extension→push",
+    "actual": "hinge"
+  },
+  {
+    "id": "0491",
+    "name": "incline leg hip raise (leg straight)",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "2287",
+    "name": "lever alternate leg press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "2289",
+    "name": "lever calf press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "2611",
+    "name": "lever horizontal one leg press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "0593",
+    "name": "lever reverse hyperextension",
+    "reason": "extension→push",
+    "actual": "hinge"
+  },
+  {
+    "id": "2335",
+    "name": "lever seated calf press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "0600",
+    "name": "lever seated leg raise crunch",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "1385",
+    "name": "lever seated squat calf raise on leg press machine",
+    "reason": "raise→push/pull",
+    "actual": "squat"
+  },
+  {
+    "id": "1385",
+    "name": "lever seated squat calf raise on leg press machine",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "0620",
+    "name": "lying leg raise flat bench",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0865",
+    "name": "lying leg-hip raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0689",
+    "name": "seated leg raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "1425",
+    "name": "sled 45 degrees one leg press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "0738",
+    "name": "sled 45в° calf press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "0739",
+    "name": "sled 45в° leg press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "1464",
+    "name": "sled 45в° leg press (back pov)",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "1463",
+    "name": "sled 45° leg press (side pov)",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "1391",
+    "name": "sled calf press on leg press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "2334",
+    "name": "sled lying calf press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "1392",
+    "name": "sled one leg calf press on leg press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "0756",
+    "name": "smith hip raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0760",
+    "name": "smith leg press",
+    "reason": "press→push",
+    "actual": "squat"
+  },
+  {
+    "id": "0786",
+    "name": "squat jerk",
+    "reason": "squat→squat",
+    "actual": "push"
+  },
+  {
+    "id": "2802",
+    "name": "twisted leg raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "2801",
+    "name": "twisted leg raise (female)",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0826",
+    "name": "vertical leg raise (on parallel bars)",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0866",
+    "name": "weighted hanging leg-hip raise",
+    "reason": "raise→push/pull",
+    "actual": "core"
+  },
+  {
+    "id": "0835",
+    "name": "weighted hyperextension (on stability ball)",
+    "reason": "extension→push",
+    "actual": "hinge"
+  },
+  {
+    "id": "3644",
+    "name": "weighted lunge with swing",
+    "reason": "deadlift/swing→hinge",
+    "actual": "lunge"
+  },
+  {
+    "id": "3642",
+    "name": "weighted stretch lunge",
+    "reason": "lunge→lunge",
+    "actual": "core"
+  }
+]

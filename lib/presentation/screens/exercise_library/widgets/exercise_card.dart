@@ -29,20 +29,10 @@ class ExerciseCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  _getExerciseIcon(),
-                  color: colorScheme.primary,
-                ),
-              ),
+              // Thumbnail (image + optional GIF badge)
+              _ExerciseThumbnail(exercise: exercise),
               const SizedBox(width: 16),
+
               // Content
               Expanded(
                 child: Column(
@@ -53,6 +43,8 @@ class ExerciseCard extends StatelessWidget {
                       style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Wrap(
@@ -69,7 +61,8 @@ class ExerciseCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Chevr on
+
+              // Chevron
               Icon(
                 Icons.chevron_right_rounded,
                 color: colorScheme.onSurface.withAlpha(102),
@@ -93,6 +86,83 @@ class ExerciseCard extends StatelessWidget {
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withAlpha(178),
             ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Thumbnail — image (or icon fallback) + optional "GIF" badge
+// ============================================================================
+
+class _ExerciseThumbnail extends StatelessWidget {
+  final ExercisePoolEntry exercise;
+
+  const _ExerciseThumbnail({required this.exercise});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final hasImage = exercise.imageUrl != null && exercise.imageUrl!.isNotEmpty;
+    final hasGif = exercise.gifUrl != null && exercise.gifUrl!.isNotEmpty;
+
+    return SizedBox(
+      width: 56,
+      height: 56,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 56,
+              height: 56,
+              color: colorScheme.primaryContainer,
+              child: hasImage
+                  ? Image.asset(
+                      exercise.imageUrl!,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      // Decode at display size (x2 for hi-DPI).
+                      cacheWidth: 112,
+                      cacheHeight: 112,
+                      errorBuilder: (_, __, ___) => _iconFallback(context),
+                    )
+                  : _iconFallback(context),
+            ),
+          ),
+          if (hasGif)
+            Positioned(
+              right: 2,
+              bottom: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  'GIF',
+                  style: TextStyle(
+                    color: colorScheme.onPrimary,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _iconFallback(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Icon(
+        _getExerciseIcon(),
+        color: colorScheme.primary,
       ),
     );
   }

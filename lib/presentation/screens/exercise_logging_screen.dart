@@ -5,6 +5,7 @@ import 'package:gymgenius/domain/entities/exercise.dart';
 import 'package:gymgenius/domain/entities/logged_exercise.dart';
 import 'package:gymgenius/presentation/providers/workout_session_manager.dart';
 import 'package:gymgenius/presentation/viewmodels/exercise_logging_viewmodel.dart';
+import 'package:gymgenius/presentation/widgets/exercise/exercise_media.dart';
 import 'package:gymgenius/presentation/widgets/workout/workout_rest_timer_controls.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -92,6 +93,14 @@ class ExerciseLoggingView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // animated GIF preview so the user can see
+              // the movement they are about to perform.
+              ExerciseMediaGif(
+                exerciseId: viewModel.exercise.id,
+                maxHeight: 200,
+              ),
+              SizedBox(height: 16),
+
               _SetHeader(exercise: viewModel.exercise),
               if (manager.isResting)
                 _RestTimerView(manager: manager)
@@ -433,10 +442,10 @@ class _TimedExerciseForm extends StatelessWidget {
                   viewModel
                       .formatDuration(viewModel.currentExerciseRunDownSeconds),
                   style: theme.textTheme.displayLarge?.copyWith(
-                        color: timerColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 64,
-                      ),
+                    color: timerColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 64,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 if (viewModel.isExerciseTimerRunning)

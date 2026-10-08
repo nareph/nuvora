@@ -17,6 +17,7 @@ import 'package:gymgenius/engines/ai_coach/ai_coach_engine.dart';
 import 'package:gymgenius/engines/ai_coach/models/coach_response.dart';
 import 'package:gymgenius/engines/decision_engine/decision_engine.dart';
 import 'package:gymgenius/engines/decision_engine/models/daily_plan.dart';
+import 'package:gymgenius/engines/workout_engine/shared/exercises/catalog/exercise_catalog.dart';
 import 'package:gymgenius/engines/workout_engine/workout_engine.dart';
 import 'package:gymgenius/presentation/screens/recovery/daily_checkin_screen.dart';
 import 'package:gymgenius/presentation/widgets/regeneration/regeneration_options_sheet.dart';
@@ -110,6 +111,11 @@ class HomeViewModel extends ChangeNotifier {
 
   Future<void> _loadData() async {
     Log.info('HomeViewModel: Loading data...');
+
+    // ✅ NEW: lazy-load the exercise catalog BEFORE anything else.
+    // Home renders exercise thumbnails via ProgramCard, so we need the
+    // catalog ready before the first build.
+    await ExerciseCatalog.ensureLoaded();
 
     _state = HomeState.loading;
     notifyListeners();
@@ -424,6 +430,14 @@ class HomeViewModel extends ChangeNotifier {
 
     if (_healthProfile == null || !_healthProfile!.isComplete) return;
 
+    // ✅ NEW: The morning check-in only makes sense with an active program.
+    //
+    // _applyCheckIn() requires _currentProgram to compute the DailyPlan,
+    // so without one the check-in would be silently discarded and the
+    // screen would keep reopening. Guarding here makes the business
+    // contract explicit for every caller, not just the HomeTabScreen.
+    if (_currentProgram == null) return;
+
     final today = DateTime.now();
 
     // The RecoveryRepository is the source of truth.
@@ -456,17 +470,15 @@ class HomeViewModel extends ChangeNotifier {
     /*
      * checkIn == null means:
      *
-     *     User pressed "Plus tard".
+     *     User pressed "Plus tard" (Later).
      *
      * IMPORTANT:
      *
      * We deliberately do NOTHING here.
      *
-     * "Plus tard" is NOT a business state.
-     * It is simply closing the form because the user is not ready
-     * to provide the information yet.
-     *
-     * Therefore:
+     * "Later" is NOT a business state. It is simply the user closing
+     * the form because they are not ready to provide the information
+     * yet. Therefore:
      *
      *     - no "skipped" flag
      *     - no database write

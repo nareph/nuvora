@@ -5,6 +5,7 @@ import 'package:gymgenius/domain/entities/exercise.dart';
 import 'package:gymgenius/domain/entities/health_profile.dart';
 import 'package:gymgenius/presentation/providers/workout_session_manager.dart';
 import 'package:gymgenius/presentation/screens/active_workout_session_screen.dart';
+import 'package:gymgenius/presentation/widgets/exercise/exercise_media.dart';
 import 'package:provider/provider.dart';
 
 class DailyWorkoutDetailScreen extends StatefulWidget {
@@ -37,24 +38,82 @@ class _DailyWorkoutDetailScreenState extends State<DailyWorkoutDetailScreen> {
     _exercises = List.from(widget.initialExercises);
   }
 
+  // ==========================================================================
+  // Exercise details dialog — now with the animated GIF at the top.
+  // ==========================================================================
   void _showExerciseDetails(BuildContext context, Exercise exercise) {
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(exercise.name),
-        content: SingleChildScrollView(
-          child: Text(
-            exercise.description.replaceAll("\\n", "\n\n"),
-            style: Theme.of(context).textTheme.bodyMedium,
+      builder: (dialogCtx) {
+        final colorScheme = Theme.of(dialogCtx).colorScheme;
+        final textTheme = Theme.of(dialogCtx).textTheme;
+
+        return AlertDialog(
+          title: Text(exercise.name),
+          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ✅ NEW: animated GIF preview
+                ExerciseMediaGif(
+                  exerciseId: exercise.id,
+                  maxHeight: 220,
+                ),
+                const SizedBox(height: 16),
+
+                // Sets / reps summary
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Prescription',
+                        style: textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${exercise.sets} sets × ${exercise.reps}'
+                        '${exercise.weightSuggestion != null && exercise.weightSuggestion!.isNotEmpty && exercise.weightSuggestion!.toLowerCase() != 'bodyweight' ? ' @ ${exercise.weightSuggestion}' : ''}',
+                        style: textTheme.bodyMedium,
+                      ),
+                      Text(
+                        'Rest: ${exercise.restSeconds}s',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Description
+                Text(
+                  exercise.description.replaceAll("\\n", "\n\n"),
+                  style: textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Close'),
-            onPressed: () => Navigator.of(dialogCtx).pop(),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -106,41 +165,10 @@ class _DailyWorkoutDetailScreenState extends State<DailyWorkoutDetailScreen> {
                     itemCount: _exercises.length,
                     itemBuilder: (context, index) {
                       final exercise = _exercises[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 16),
-                          leading: CircleAvatar(
-                            backgroundColor: colorScheme.primaryContainer,
-                            child: Text(
-                              "${index + 1}",
-                              style: TextStyle(
-                                color: colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            exercise.name,
-                            style: textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            "${exercise.sets} sets of ${exercise.reps}"
-                            "${exercise.weightSuggestion != null && exercise.weightSuggestion!.isNotEmpty && exercise.weightSuggestion!.toLowerCase() != 'bodyweight' ? ' @ ${exercise.weightSuggestion}kg' : (exercise.isBodyweight ? ' (Bodyweight)' : '')}"
-                            "\nRest: ${exercise.restSeconds}s between sets",
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              height: 1.4,
-                            ),
-                          ),
-                          isThreeLine: true,
-                          trailing: Icon(Icons.info_outline_rounded,
-                              color:
-                                  colorScheme.secondary.withValues(alpha: 0.8)),
-                          onTap: () => _showExerciseDetails(context, exercise),
-                        ),
+                      return _ExerciseListTile(
+                        index: index,
+                        exercise: exercise,
+                        onTap: () => _showExerciseDetails(context, exercise),
                       );
                     },
                   ),
@@ -235,6 +263,112 @@ class _DailyWorkoutDetailScreenState extends State<DailyWorkoutDetailScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Exercise list tile with thumbnail
+// ============================================================================
+
+class _ExerciseListTile extends StatelessWidget {
+  final int index;
+  final Exercise exercise;
+  final VoidCallback onTap;
+
+  const _ExerciseListTile({
+    required this.index,
+    required this.exercise,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final weightPart = exercise.weightSuggestion != null &&
+            exercise.weightSuggestion!.isNotEmpty &&
+            exercise.weightSuggestion!.toLowerCase() != 'bodyweight'
+        ? ' @ ${exercise.weightSuggestion}'
+        : (exercise.isBodyweight ? ' (Bodyweight)' : '');
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Order number
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Thumbnail (image + GIF badge)
+              ExerciseMediaThumbnail(
+                exerciseId: exercise.id,
+                size: 56,
+              ),
+              const SizedBox(width: 12),
+
+              // Text block
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      exercise.name,
+                      style: textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${exercise.sets} sets × ${exercise.reps}$weightPart',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      'Rest: ${exercise.restSeconds}s',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Icon(
+                Icons.info_outline_rounded,
+                color: colorScheme.secondary.withValues(alpha: 0.8),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
