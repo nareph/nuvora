@@ -145,4 +145,4 @@ assets/exercises/taxonomy_report.json
 
 # ─── Python cache ───
 scripts/__pycache__/
-*.pyc
+*.pycfirepit-log.txt
